@@ -94,6 +94,8 @@ Pastikan **Environment Variables** sudah diset di dashboard Vercel sebelum deplo
 
 ---
 
+Thank You 💖
+
 ## ⚙️ Tech Stack
 
 * Frontend Web Application
