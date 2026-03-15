@@ -94,11 +94,13 @@ Pastikan **Environment Variables** sudah diset di dashboard Vercel sebelum deplo
 
 ---
 
-Thank You 💖
-
 ## ⚙️ Tech Stack
 
 * Frontend Web Application
 * Serverless Functions
 * AI Integration (LLM API)
 * Deployment: Vercel
+
+---
+
+Thank You 
