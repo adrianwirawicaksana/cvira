@@ -1,0 +1,52 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/**/*.js",
+            "use": "@vercel/node",
+            "config": {
+                "includeFiles": [
+                    "lib/**"
+                ]
+            }
+        },
+        {
+            "src": "public/**",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/auth/google",
+            "dest": "/api/auth/google.js"
+        },
+        {
+            "src": "/auth/google/callback",
+            "dest": "/api/auth/callback.js"
+        },
+        {
+            "src": "/auth/logout",
+            "dest": "/api/auth/logout.js"
+        },
+        {
+            "src": "/auth/me",
+            "dest": "/api/auth/me.js"
+        },
+        {
+            "src": "/api/generate",
+            "dest": "/api/generate.js"
+        },
+        {
+            "src": "/api/config",
+            "dest": "/api/config.js"
+        },
+        {
+            "src": "/api/status",
+            "dest": "/api/status.js"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/public/index.html"
+        }
+    ]
+}
