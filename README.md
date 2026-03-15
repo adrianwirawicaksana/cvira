@@ -5,8 +5,8 @@ Ikuti langkah berikut untuk menjalankan project di lokal.
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/username/nama-repo.git
-cd nama-repo
+https://github.com/adrianwirawicaksana/cvira.git
+cd cvira
 ```
 
 ### 2. Install Dependencies
