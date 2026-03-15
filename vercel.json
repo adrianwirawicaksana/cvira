@@ -17,6 +17,10 @@
     ],
     "routes": [
         {
+            "src": "/favicon.ico",
+            "dest": "/public/favicon.ico"
+        },
+        {
             "src": "/auth/google",
             "dest": "/api/auth/google.js"
         },
