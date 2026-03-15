@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CVira — Generative CV Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,700&display=swap"
+        rel="stylesheet">
+
+    <!-- ══════════════════════════════════════════
+         MAYAR.ID PAYMENT GATEWAY — SETUP GUIDE
+         ══════════════════════════════════════════
+         1. Daftar di https://mayar.id
+         2. Buat Payment Link untuk paket Pro Bulanan & Pro Tahunan
+         3. Ganti YOUR_MAYAR_PUBLIC_KEY dengan Public API Key dari dashboard Mayar.id
+         4. Ganti nilai mayarConfig.monthly & mayarConfig.yearly dengan Payment Link ID masing-masing
+         ══════════════════════════════════════════ -->
+    <script>
+        // ── MAYAR.ID CONFIG ──
+        var mayarConfig = {
+            publicKey: 'YOUR_MAYAR_PUBLIC_KEY',
+            monthly: 'YOUR_PAYMENT_LINK_ID_MONTHLY',   // ID dari Mayar.id untuk Pro Bulanan
+            yearly: 'YOUR_PAYMENT_LINK_ID_YEARLY',    // ID dari Mayar.id untuk Pro Tahunan
+        };
+    </script>
+    <!-- Mayar.id SDK (uncomment setelah mendapatkan key resmi) -->
+    <!-- <script src="https://cdn.mayar.id/mayar-sdk.min.js" data-key="YOUR_MAYAR_PUBLIC_KEY"></script> -->
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        blue: { DEFAULT: '#0070ba', light: '#0085d4', pale: '#cce4f7' },
+                        navy: '#1a2332',
+                        muted: '#718096',
+                        surface: '#f4f7fb',
+                        surface2: '#e8eef6',
+                        border: '#d0daea',
+                        yellow: { DEFAULT: '#ffc439', hover: '#ffca5c', border: '#f0b429' },
+                        mayar: { DEFAULT: '#2563eb', dark: '#1d4ed8', light: '#fce7f3', pale: '#fbcfe8' },
+                    },
+                    fontFamily: { poppins: ['Poppins', 'sans-serif'] },
+                    keyframes: {
+                        fadeUp: { from: { opacity: '0', transform: 'translateY(24px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+                        pulse2: { '0%,100%': { opacity: '1', transform: 'scale(1)' }, '50%': { opacity: '0.5', transform: 'scale(0.7)' } },
+                        shimmer: { '0%': { left: '-100%' }, '100%': { left: '200%' } },
+                        spin: { to: { transform: 'rotate(360deg)' } },
+                        cardFloat: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        gridDrift: { from: { backgroundPosition: '0px 0px, 0px 0px' }, to: { backgroundPosition: '40px 40px, 40px 40px' } },
+                        modalPop: { from: { opacity: '0', transform: 'scale(0.88) translateY(20px)' }, to: { opacity: '1', transform: 'scale(1) translateY(0)' } },
+                        toastSlide: { from: { opacity: '0', transform: 'translateX(40px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
+                        tagPop: { from: { opacity: '0', transform: 'scale(0.7)' }, to: { opacity: '1', transform: 'scale(1)' } },
+                        badgeGlow: { from: { boxShadow: '0 0 0 rgba(0,112,186,0)' }, to: { boxShadow: '0 0 18px rgba(0,112,186,0.18)' } },
+                        mayarPulse: { '0%,100%': { boxShadow: '0 0 0 0 rgba(37,99,235,0.4)' }, '60%': { boxShadow: '0 0 0 10px rgba(37,99,235,0)' } },
+                        mayarGlow: { from: { opacity: '0.7', transform: 'scale(0.96)' }, to: { opacity: '1', transform: 'scale(1.04)' } },
+                    },
+                    animation: {
+                        fadeUp: 'fadeUp 0.8s ease both',
+                        fadeUp1: 'fadeUp 0.8s 0.1s ease both',
+                        fadeUp2: 'fadeUp 0.8s 0.2s ease both',
+                        fadeUp3: 'fadeUp 0.8s 0.3s ease both',
+                        fadeUp4: 'fadeUp 0.8s 0.4s ease both',
+                        fadeUp5: 'fadeUp 0.8s 0.5s ease both',
+                        pulse2: 'pulse2 2s infinite',
+                        shimmer: 'shimmer 2.5s infinite',
+                        spin: 'spin 0.7s linear infinite',
+                        cardFloat: 'cardFloat 6s ease-in-out infinite',
+                        gridDrift: 'gridDrift 20s ease-in-out infinite alternate',
+                        modalPop: 'modalPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both',
+                        toastSlide: 'toastSlide 0.4s cubic-bezier(0.34,1.56,0.64,1) both',
+                        tagPop: 'tagPop 0.3s cubic-bezier(0.34,1.56,0.64,1) both',
+                        badgeGlow: 'badgeGlow 3s ease-in-out 1s infinite alternate',
+                        mayarPulse: 'mayarPulse 2s ease-in-out infinite',
+                        mayarGlow: 'mayarGlow 3s ease-in-out infinite alternate',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* noise overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .hero-grid {
+            animation: gridDrift 20s ease-in-out infinite alternate;
+        }
+
+        .cv-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 112, 186, 0.3), transparent);
+            animation: shimmer 2.5s infinite;
+        }
+
+        /* ── HERO CARD ── */
+        .hero-card-wrap {
+            position: relative;
+            filter: drop-shadow(0 24px 48px rgba(0, 112, 186, 0.18));
+        }
+
+        .hero-card-float {
+            animation: heroFloat 5s ease-in-out infinite;
+            transform-origin: center center;
+        }
+
+        @keyframes heroFloat {
+            0% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-14px) rotate(0.4deg);
+            }
+
+            50% {
+                transform: translateY(-8px) rotate(-0.3deg);
+            }
+
+            75% {
+                transform: translateY(-18px) rotate(0.2deg);
+            }
+
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+        }
+
+        .hero-card-glow {
+            position: absolute;
+            inset: -20px;
+            background: radial-gradient(ellipse 70% 50% at 50% 60%, rgba(0, 112, 186, 0.18) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: glowPulse 4s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes glowPulse {
+            from {
+                opacity: 0.5;
+                transform: scale(0.92);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1.08);
+            }
+        }
+
+        .hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-orb-1 {
+            width: 12px;
+            height: 12px;
+            background: rgba(0, 112, 186, 0.35);
+            top: -10px;
+            right: 30px;
+            animation: orbFloat1 4.5s ease-in-out infinite;
+        }
+
+        .hero-orb-2 {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 196, 57, 0.7);
+            bottom: 20px;
+            left: -14px;
+            animation: orbFloat2 5.5s ease-in-out infinite 0.8s;
+        }
+
+        .hero-orb-3 {
+            width: 6px;
+            height: 6px;
+            background: rgba(0, 133, 212, 0.5);
+            top: 40%;
+            right: -12px;
+            animation: orbFloat1 3.8s ease-in-out infinite 1.5s;
+        }
+
+        .hero-orb-4 {
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 196, 57, 0.4);
+            top: 10px;
+            left: 20px;
+            animation: orbFloat2 6s ease-in-out infinite 0.3s;
+        }
+
+        @keyframes orbFloat1 {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: .7;
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        @keyframes orbFloat2 {
+
+            0%,
+            100% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: .5;
+            }
+
+            33% {
+                transform: translateY(-12px) translateX(6px) scale(1.1);
+                opacity: .9;
+            }
+
+            66% {
+                transform: translateY(-6px) translateX(-4px) scale(.9);
+                opacity: .7;
+            }
+        }
+
+        .hero-card-sweep {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.12) 50%, transparent 60%);
+            background-size: 200% 200%;
+            animation: cardSweep 4s ease-in-out infinite 1s;
+            pointer-events: none;
+        }
+
+        @keyframes cardSweep {
+            0% {
+                background-position: -100% 0;
+            }
+
+            50% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* ── GENERATE BUTTON ── */
+        .generate-btn {
+            background: linear-gradient(135deg, #0050a0 0%, #0070ba 40%, #0095e0 70%, #00b4e8 100%) !important;
+            background-size: 200% 200% !important;
+            animation: btnGradientShift 3s ease infinite !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes btnGradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .generate-btn::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: linear-gradient(135deg, #0095e0, #0070ba, #00b4e8, #0050a0);
+            background-size: 300% 300%;
+            animation: btnGradientShift 2s linear infinite;
+            opacity: 0;
+            z-index: -1;
+            filter: blur(8px);
+            transition: opacity 0.3s;
+        }
+
+        .generate-btn:hover::after {
+            opacity: 0.8;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 0 0 2px rgba(0, 149, 224, 0.3), 0 8px 32px rgba(0, 112, 186, 0.45) !important;
+        }
+
+        .generate-btn:not(:disabled)::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow: 0 0 0 0 rgba(0, 149, 224, 0.5);
+            animation: btnPulseRing 2.5s ease-out infinite 1s;
+        }
+
+        @keyframes btnPulseRing {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 149, 224, 0.45);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 149, 224, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 149, 224, 0);
+            }
+        }
+
+        .generate-btn .btn-shine {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            animation: btnShine 3s ease-in-out infinite 0.5s;
+            pointer-events: none;
+        }
+
+        @keyframes btnShine {
+            0% {
+                left: -100%;
+            }
+
+            40% {
+                left: 150%;
+            }
+
+            100% {
+                left: 150%;
+            }
+        }
+
+        /* ── MAYAR.ID BUTTON ── */
+        .mayar-btn {
+            background: linear-gradient(135deg, #db2777 0%, #ec4899 50%, #f472b6 100%);
+            background-size: 200% 200%;
+            animation: mayarBtnShift 4s ease infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes mayarBtnShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .mayar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(236, 72, 153, 0.5), 0 0 0 2px rgba(29, 78, 216, 0.15);
+        }
+
+        .mayar-btn .btn-shine {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            animation: btnShine 3s ease-in-out infinite 0.8s;
+            pointer-events: none;
+        }
+
+        /* ── MAYAR.ID SPONSOR STRIP ── */
+        .mayar-sponsor-strip {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fff5fb 50%, #f0f4ff 100%);
+            border-top: 1px solid rgba(236, 72, 153, 0.2);
+            border-bottom: 1px solid rgba(236, 72, 153, 0.2);
+        }
+
+        .mayar-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border: 1.5px solid #ec4899;
+            padding: 6px 14px;
+            border-radius: 50px;
+            box-shadow: 0 2px 12px rgba(236, 72, 153, 0.12);
+            animation: mayarGlow 3s ease-in-out infinite alternate;
+        }
+
+        .mayar-logo-text {
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mayar-trust-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(236, 72, 153, 0.06);
+            border: 1px solid rgba(236, 72, 153, 0.22);
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 10px;
+            color: #2563eb;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* misc */
+        .tab-btn.active {
+            color: #0070ba;
+            border-bottom: 2px solid #0070ba;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .user-bar {
+            display: none !important;
+        }
+
+        .user-bar.show {
+            display: flex !important;
+        }
+
+        .login-gate {
+            display: none !important;
+        }
+
+        .login-gate.show {
+            display: flex !important;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(36px);
+            transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 {
+            transition-delay: 0.1s;
+        }
+
+        .reveal-delay-2 {
+            transition-delay: 0.2s;
+        }
+
+        .reveal-delay-3 {
+            transition-delay: 0.3s;
+        }
+
+        .modal-overlay {
+            display: none !important;
+        }
+
+        .modal-overlay.show {
+            display: flex !important;
+        }
+
+        .modal-overlay.show .modal-box {
+            animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .toast {
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+            animation: toastSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-overlay {
+            display: none;
+        }
+
+        .sidebar-overlay.open {
+            display: block;
+        }
+
+        .ham.open span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+        .ham.open span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .ham.open span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #0070ba;
+            transition: width 0.25s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        .generate-btn.loading .spinner {
+            display: block;
+        }
+
+        .generate-btn.loading .btn-text::after {
+            content: '...';
+        }
+
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230070ba' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-color: #fff;
+        }
+
+        .skill-tag {
+            animation: tagPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f4f7fb;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d0daea;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0070ba;
+        }
+
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* ── CV DOCUMENT ── */
+        .cv-document {
+            padding: 48px 40px;
+            background: #fafaf7;
+            color: #1a1a18;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .cv-name {
+            font-size: 38px;
+            font-weight: 900;
+            line-height: 1;
+            color: #0a0a08;
+            letter-spacing: -1px;
+        }
+
+        .cv-profession {
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #0070ba;
+            margin: 8px 0;
+        }
+
+        .cv-contact-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 14px;
+        }
+
+        .cv-contact-item {
+            font-size: 12px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cv-section {
+            margin-bottom: 28px;
+        }
+
+        .cv-section-title {
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #0070ba;
+            margin-bottom: 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #d0daea;
+        }
+
+        .cv-summary-text {
+            font-size: 14px;
+            line-height: 1.75;
+            color: #333;
+        }
+
+        .cv-experience-item {
+            margin-bottom: 20px;
+            padding-left: 16px;
+            border-left: 2px solid #0085d4;
+        }
+
+        .cv-job-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #0a0a08;
+        }
+
+        .cv-company {
+            font-size: 11px;
+            color: #0070ba;
+            letter-spacing: 1px;
+            margin: 2px 0;
+        }
+
+        .cv-date {
+            font-size: 10px;
+            color: #888;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .cv-desc {
+            font-size: 13px;
+            line-height: 1.7;
+            color: #444;
+        }
+
+        .cv-skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .cv-skill-chip {
+            background: #e8f0fb;
+            border: 1px solid #c0d4f0;
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #0070ba;
+            padding: 4px 12px;
+        }
+
+        .cv-education-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .cv-degree {
+            font-weight: 600;
+            font-size: 14px;
+            color: #0a0a08;
+        }
+
+        .cv-school {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .cv-edu-date {
+            font-size: 11px;
+            color: #888;
+            white-space: nowrap;
+        }
+
+        .cv-header-section {
+            border-bottom: 3px solid #1a1a18;
+            padding-bottom: 24px;
+            margin-bottom: 28px;
+        }
+
+        /* ── PAGE LOADER ── */
+        #pageLoader {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        #pageLoader.hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader-logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #1a2332;
+            letter-spacing: -1px;
+            animation: logoPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        .loader-logo span {
+            color: #0070ba;
+        }
+
+        @keyframes logoPop {
+            from {
+                opacity: 0;
+                transform: scale(0.7);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .loader-dots {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            height: 32px;
+        }
+
+        .loader-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: dotBounce 0.8s ease-in-out infinite alternate;
+        }
+
+        .loader-dot:nth-child(1) {
+            background: #0070ba;
+            animation-delay: 0s;
+        }
+
+        .loader-dot:nth-child(2) {
+            background: #0095e0;
+            animation-delay: 0.15s;
+        }
+
+        .loader-dot:nth-child(3) {
+            background: #ffc439;
+            animation-delay: 0.3s;
+        }
+
+        @keyframes dotBounce {
+            from {
+                transform: translateY(0) scale(1);
+            }
+
+            to {
+                transform: translateY(-20px) scale(1.15);
+            }
+        }
+
+        .loader-tagline {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 400;
+            animation: logoPop 0.6s 0.3s both;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── GENERATE OVERLAY ── */
+        #generateOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(26, 35, 50, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+        }
+
+        #generateOverlay.show {
+            display: flex;
+        }
+
+        .gen-overlay-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            box-shadow: 0 32px 80px rgba(0, 112, 186, 0.25);
+            animation: overlayPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            min-width: 260px;
+            max-width: 90vw;
+        }
+
+        @media(min-width:480px) {
+            .gen-overlay-card {
+                padding: 48px 56px;
+                min-width: 280px;
+            }
+        }
+
+        @keyframes overlayPop {
+            from {
+                opacity: 0;
+                transform: scale(0.85) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .gen-logo-bounce {
+            font-family: 'Poppins', sans-serif;
+            font-size: 36px;
+            font-weight: 900;
+            color: #1a2332;
+            letter-spacing: -1px;
+            animation: logoBounce 0.7s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite alternate;
+            user-select: none;
+        }
+
+        .gen-logo-bounce span {
+            color: #0070ba;
+        }
+
+        @keyframes logoBounce {
+            from {
+                transform: translateY(0) scaleY(1) scaleX(1);
+            }
+
+            to {
+                transform: translateY(-22px) scaleY(1.08) scaleX(0.96);
+            }
+        }
+
+        .gen-shadow {
+            width: 48px;
+            height: 10px;
+            background: rgba(0, 112, 186, 0.18);
+            border-radius: 50%;
+            animation: shadowSquish 0.7s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite alternate;
+            margin-top: -16px;
+        }
+
+        @keyframes shadowSquish {
+            from {
+                transform: scaleX(1);
+                opacity: 0.5;
+            }
+
+            to {
+                transform: scaleX(0.6);
+                opacity: 0.2;
+            }
+        }
+
+        .gen-overlay-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a2332;
+            text-align: center;
+        }
+
+        .gen-overlay-sub {
+            font-size: 13px;
+            color: #718096;
+            text-align: center;
+            margin-top: -12px;
+        }
+
+        .gen-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .gen-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: genDotPulse 1.2s ease-in-out infinite;
+        }
+
+        .gen-dot:nth-child(1) {
+            background: #0070ba;
+            animation-delay: 0s;
+        }
+
+        .gen-dot:nth-child(2) {
+            background: #0095e0;
+            animation-delay: 0.2s;
+        }
+
+        .gen-dot:nth-child(3) {
+            background: #00b4e8;
+            animation-delay: 0.4s;
+        }
+
+        .gen-dot:nth-child(4) {
+            background: #ffc439;
+            animation-delay: 0.6s;
+        }
+
+        @keyframes genDotPulse {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.7);
+                opacity: 0.4;
+            }
+
+            40% {
+                transform: scale(1.3);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-white text-gray-700 font-poppins font-light overflow-x-hidden">
+
+    <!-- ── PAGE LOADER ── -->
+    <div id="pageLoader">
+        <div class="loader-logo">CV<span>ira</span></div>
+        <div class="loader-dots">
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+        </div>
+        <div class="loader-tagline">Memuat aplikasi...</div>
+    </div>
+
+    <!-- ── GENERATE OVERLAY ── -->
+    <div id="generateOverlay">
+        <div class="gen-overlay-card">
+            <div class="gen-logo-bounce">CV<span>ira</span></div>
+            <div class="gen-shadow"></div>
+            <div class="gen-overlay-text">CVira AI sedang bekerja</div>
+            <div class="gen-overlay-sub">Membuat CV profesional untukmu...</div>
+            <div class="gen-dots">
+                <div class="gen-dot"></div>
+                <div class="gen-dot"></div>
+                <div class="gen-dot"></div>
+                <div class="gen-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── NAVBAR ── -->
+    <nav id="navbar"
+        class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-12 py-3 md:py-4 bg-white/95 backdrop-blur-md border-b border-[#0070ba]/10 transition-all duration-300 gap-2">
+        <a href="#" class="text-[22px] font-extrabold text-navy no-underline tracking-tight">CV<span
+                class="text-blue">ira</span></a>
+        <ul class="hidden md:flex items-center gap-9 list-none">
+            <li><a href="#how"
+                    class="nav-link text-[11px] tracking-widest uppercase text-muted hover:text-blue transition-colors duration-200">Cara
+                    Kerja</a></li>
+            <li><a href="#generator"
+                    class="nav-link text-[11px] tracking-widest uppercase text-muted hover:text-blue transition-colors duration-200">Generator</a>
+            </li>
+            <li><a href="#features"
+                    class="nav-link text-[11px] tracking-widest uppercase text-muted hover:text-blue transition-colors duration-200">Fitur</a>
+            </li>
+            <li><a href="#pricing"
+                    class="nav-link text-[11px] tracking-widest uppercase text-muted hover:text-blue transition-colors duration-200">Harga</a>
+            </li>
+        </ul>
+        <!-- User bar -->
+        <div class="user-bar items-center gap-2" id="userBar">
+            <img id="userAvatar" style="display:none;"
+                class="w-7 h-7 rounded-full object-cover border border-[#d0daea] shrink-0" src="" alt="">
+            <span id="userPlanBadge"
+                class="hidden sm:inline text-[9px] tracking-widest uppercase px-2 py-0.5 border border-[#d0daea] text-[#718096] font-semibold rounded-full">FREE</span>
+            <span id="navTokenInfo" style="display:none;"
+                class="text-[10px] font-semibold text-[#0070ba] bg-[#0070ba]/8 border border-[#0070ba]/20 px-2.5 py-1 rounded-full whitespace-nowrap"></span>
+            <span id="userNameDisplay"
+                class="text-[11px] text-[#718096] max-w-[100px] overflow-hidden text-ellipsis whitespace-nowrap hidden lg:block"></span>
+            <button onclick="doLogout()"
+                class="hidden md:inline-flex bg-red-500 hover:bg-red-700 text-white text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-md transition-all duration-200 hover:shadow-md">Keluar</button>
+        </div>
+        <!-- Login CTA -->
+        <div id="navActions">
+            <a href="#" id="navLoginBtn" onclick="openLoginModal(event)"
+                class="hidden sm:inline-flex text-[11px] tracking-widest uppercase bg-[#0070ba] hover:bg-[#0085d4] text-white px-5 py-2.5 transition-all duration-200 font-semibold rounded hover:-translate-y-px hover:shadow-lg hover:shadow-[#0070ba]/30">Masuk</a>
+            <a href="#" onclick="openLoginModal(event)"
+                class="sm:hidden bg-[#0070ba] text-white text-[11px] font-bold px-3 py-2 rounded transition-all">Masuk</a>
+        </div>
+        <button id="navHamburger" onclick="toggleDrawer()"
+            class="ham relative flex md:hidden flex-col gap-[5px] bg-[#e8eef6] hover:bg-[#f4f7fb] border border-[#d0daea] cursor-pointer p-2 rounded-md ml-1 transition-all duration-200"
+            aria-label="Menu">
+            <span class="block w-[20px] h-[2px] bg-[#1a2332] rounded-sm transition-all duration-300"></span>
+            <span class="block w-[20px] h-[2px] bg-[#1a2332] rounded-sm transition-all duration-300"></span>
+            <span class="block w-[20px] h-[2px] bg-[#1a2332] rounded-sm transition-all duration-300"></span>
+            <span id="hamLoggedDot" style="display:none;"
+                class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+        </button>
+    </nav>
+
+    <!-- ── SIDEBAR OVERLAY ── -->
+    <div id="sidebarOverlay" onclick="toggleDrawer()"
+        class="sidebar-overlay fixed inset-0 bg-navy/45 backdrop-blur-sm z-[148]"></div>
+
+    <!-- ── SIDEBAR ── -->
+    <div id="mobileDrawer"
+        class="sidebar fixed top-0 left-0 bottom-0 w-72 bg-white z-[149] flex flex-col shadow-2xl overflow-y-auto overflow-x-hidden">
+        <div id="sidebarUserSection" style="display:none;"
+            class="bg-gradient-to-br from-blue to-blue-light px-6 pt-12 pb-6 relative">
+            <button onclick="toggleDrawer()"
+                class="absolute top-3.5 right-3.5 w-[30px] h-[30px] rounded-full bg-white/20 hover:bg-white/35 border-none text-white text-base cursor-pointer flex items-center justify-center transition-all">✕</button>
+            <div class="flex items-center gap-3 mb-3">
+                <img id="sidebarAvatar" style="display:none;"
+                    class="w-11 h-11 rounded-full border-2 border-white/60 object-fit-cover" src="" alt="">
+                <div id="sidebarAvatarPlaceholder"
+                    class="w-11 h-11 rounded-full bg-white/25 flex items-center justify-center text-xl text-white border-2 border-white/40 shrink-0">
+                    👤</div>
+                <div>
+                    <div id="sidebarUserName" class="text-sm font-bold text-white leading-tight">Pengguna</div>
+                    <div id="sidebarUserEmail" class="text-[11px] text-white/70 mt-0.5 break-all"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="sidebarTokenChip"
+                    class="text-[11px] font-semibold text-white bg-white/18 border border-white/35 px-3 py-1 rounded-full">3
+                    token</span>
+                <span id="sidebarPlanChip"
+                    class="text-[9px] font-bold text-navy bg-[#ffc439] px-2 py-0.5 rounded-full uppercase tracking-wide">FREE</span>
+            </div>
+        </div>
+        <div id="sidebarGuestSection" class="bg-gradient-to-br from-surface to-surface2 px-6 pt-12 pb-6 relative">
+            <button onclick="toggleDrawer()"
+                class="absolute top-3.5 right-3.5 w-[30px] h-[30px] rounded-full bg-surface2 hover:bg-surface border border-border text-muted text-base cursor-pointer flex items-center justify-center transition-all">✕</button>
+            <div class="text-[22px] font-extrabold text-navy mb-1.5">CV<span class="text-blue">ira</span></div>
+            <p class="text-xs text-muted leading-relaxed">CV profesional dalam detik dengan AI.</p>
+        </div>
+        <nav class="py-4 flex-1">
+            <a href="#how" onclick="toggleDrawer()"
+                class="flex items-center gap-3 px-6 py-3.5 text-[15px] font-semibold text-navy hover:bg-surface hover:text-blue border-l-[3px] border-transparent hover:border-[#0070ba] transition-all duration-200 no-underline">📋
+                Cara Kerja</a>
+            <a href="#generator" onclick="toggleDrawer()"
+                class="flex items-center gap-3 px-6 py-3.5 text-[15px] font-semibold text-navy hover:bg-surface hover:text-blue border-l-[3px] border-transparent hover:border-[#0070ba] transition-all duration-200 no-underline">✨
+                Generator</a>
+            <a href="#features" onclick="toggleDrawer()"
+                class="flex items-center gap-3 px-6 py-3.5 text-[15px] font-semibold text-navy hover:bg-surface hover:text-blue border-l-[3px] border-transparent hover:border-[#0070ba] transition-all duration-200 no-underline">🎯
+                Fitur</a>
+            <a href="#pricing" onclick="toggleDrawer()"
+                class="flex items-center gap-3 px-6 py-3.5 text-[15px] font-semibold text-navy hover:bg-surface hover:text-blue border-l-[3px] border-transparent hover:border-[#0070ba] transition-all duration-200 no-underline">💰
+                Harga</a>
+        </nav>
+        <div class="h-px bg-border mx-6"></div>
+        <div class="px-6 py-5 flex flex-col gap-2.5">
+            <div id="sidebarGuestCta">
+                <a href="#" onclick="toggleDrawer(); openLoginModal();"
+                    class="block w-full text-center bg-[#ffc439] hover:bg-[#ffca5c] text-navy font-bold text-[13px] py-3.5 rounded-lg no-underline transition-all duration-200">Masuk
+                    dengan Google</a>
+            </div>
+            <div id="sidebarUserCta" style="display:none;" class="flex flex-col gap-2.5">
+                <a href="#generator" onclick="toggleDrawer()"
+                    class="block w-full text-center bg-[#ffc439] hover:bg-[#ffca5c] text-navy font-bold text-[13px] py-3.5 rounded-lg no-underline transition-all duration-200">Buat
+                    CV Sekarang</a>
+                <button onclick="toggleDrawer(); doLogout();"
+                    class="w-full bg-red-500 hover:bg-red-700 text-white text-[12px] font-bold uppercase tracking-wide py-3 rounded-lg border-none cursor-pointer transition-all duration-200">Keluar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── HERO ── -->
+    <section id="hero"
+        class="min-h-screen flex items-center pt-20 md:pt-[120px] pb-12 md:pb-20 px-4 md:px-12 relative overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none"
+            style="background:radial-gradient(ellipse 80% 60% at 70% 40%,rgba(0,112,186,0.06) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 20% 80%,rgba(0,133,212,0.04) 0%,transparent 50%),linear-gradient(135deg,#fff 0%,#f4f7fb 100%)">
+        </div>
+        <div class="hero-grid absolute inset-0 pointer-events-none"
+            style="background-image:linear-gradient(rgba(0,112,186,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,112,186,0.05) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 0%,transparent 80%)">
+        </div>
+
+        <div
+            class="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-20 items-center">
+            <div>
+                <div class="animate-fadeUp inline-flex items-center gap-2 text-[10px] tracking-[3px] uppercase text-[#0070ba] border border-[#0070ba]/30 bg-[#0070ba]/4 px-3.5 py-1.5 mb-7 rounded-sm"
+                    style="animation:fadeUp 0.8s ease both, badgeGlow 3s ease-in-out 1s infinite alternate">
+                    <span class="w-1.5 h-1.5 bg-[#0070ba] rounded-full" style="animation:pulse2 2s infinite"></span>
+                    Powered by CVira AI
+                </div>
+                <h1 class="font-extrabold leading-none tracking-tight text-navy mb-2"
+                    style="font-size:clamp(30px,6vw,82px);animation:fadeUp 0.8s 0.1s ease both">
+                    CV Profesional<br>
+                    dalam <em class="italic text-[#0070ba] not-italic" style="font-style:italic">Detik</em>
+                </h1>
+                <p class="text-[17px] font-light leading-relaxed text-muted mt-7 mb-11 max-w-md"
+                    style="animation:fadeUp 0.8s 0.2s ease both">
+                    Biarkan teknologi AI menulis CV impresif Anda secara otomatis. Masukkan data, pilih gaya, dan
+                    dapatkan CV berkualitas tinggi yang siap kirim.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start mt-6 md:mt-11"
+                    style="animation:fadeUp 0.8s 0.3s ease both">
+                    <a href="#generator"
+                        class="relative overflow-hidden bg-[#ffc439] hover:bg-[#ffca5c] text-navy font-bold text-[12px] tracking-widest uppercase px-9 py-4 rounded-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-yellow/40 w-full sm:w-auto text-center no-underline">Mulai
+                        Gratis</a>
+                    <a href="#how"
+                        class="bg-[#0070ba] hover:bg-[#0085d4] text-white font-semibold text-[12px] tracking-wide uppercase px-6 py-[13px] rounded-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#0070ba]/30 w-full sm:w-auto text-center no-underline">Cara
+                        Kerja</a>
+                </div>
+                <div class="flex gap-5 sm:gap-8 mt-8 md:mt-12" style="animation:fadeUp 0.8s 0.5s ease both">
+                    <div>
+                        <div class="stat-num font-extrabold text-4xl text-[#0070ba] leading-none">10K+</div>
+                        <div class="text-[10px] tracking-widest uppercase text-muted mt-1">CV Dibuat</div>
+                    </div>
+                    <div>
+                        <div class="stat-num font-extrabold text-4xl text-[#0070ba] leading-none">98%</div>
+                        <div class="text-[10px] tracking-widest uppercase text-muted mt-1">Kepuasan</div>
+                    </div>
+                    <div>
+                        <div class="stat-num font-extrabold text-4xl text-[#0070ba] leading-none">3s</div>
+                        <div class="text-[10px] tracking-widest uppercase text-muted mt-1">Generate</div>
+                    </div>
+                </div>
+            </div>
+            <!-- CV Preview Card -->
+            <div class="mt-10 md:mt-0 hero-card-wrap" style="animation:fadeUp 0.8s 0.4s ease both">
+                <div class="hero-card-glow"></div>
+                <div class="hero-orb hero-orb-1"></div>
+                <div class="hero-orb hero-orb-2"></div>
+                <div class="hero-orb hero-orb-3"></div>
+                <div class="hero-orb hero-orb-4"></div>
+                <div
+                    class="hero-card-float bg-white border border-[#d0daea] rounded-xl p-8 relative overflow-hidden shadow-2xl shadow-[#0070ba]/15">
+                    <div class="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl"
+                        style="background:linear-gradient(90deg,#0050a0,#0070ba,#00b4e8)"></div>
+                    <div class="hero-card-sweep"></div>
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="text-[9px] tracking-[3px] uppercase text-[#0070ba] font-semibold opacity-80">CV
+                            Preview</div>
+                        <div
+                            class="text-[8px] tracking-widest text-[#0070ba] opacity-50 bg-[#0070ba]/5 border border-[#0070ba]/15 px-2 py-0.5 rounded-full">
+                            AI GENERATED ✦</div>
+                    </div>
+                    <div class="cv-line relative overflow-hidden h-5 w-[60%] rounded mb-2"
+                        style="background:rgba(0,112,186,0.14)"></div>
+                    <div class="cv-line relative overflow-hidden h-3 w-[38%] rounded mb-4"
+                        style="background:rgba(0,112,186,0.07)"></div>
+                    <div class="h-px bg-[#d0daea] mb-4"></div>
+                    <div class="text-[8px] tracking-[3px] uppercase text-[#0070ba] opacity-60 mb-2.5">● Pengalaman</div>
+                    <div class="cv-line relative overflow-hidden h-2.5 rounded mb-2 bg-[#e8eef6] w-[92%]"></div>
+                    <div class="cv-line relative overflow-hidden h-2.5 rounded mb-2 bg-[#e8eef6] w-[75%]"></div>
+                    <div class="cv-line relative overflow-hidden h-2.5 rounded mb-4 bg-[#e8eef6] w-[50%]"></div>
+                    <div class="text-[8px] tracking-[3px] uppercase text-[#0070ba] opacity-60 mb-2.5">● Keahlian</div>
+                    <div class="flex gap-1.5 mb-4 flex-wrap">
+                        <div class="h-5 w-16 rounded-full bg-[#0070ba]/10"></div>
+                        <div class="h-5 w-14 rounded-full bg-[#0070ba]/10"></div>
+                        <div class="h-5 w-20 rounded-full bg-[#0070ba]/10"></div>
+                        <div class="h-5 w-12 rounded-full bg-[#0070ba]/10"></div>
+                    </div>
+                    <div class="text-[8px] tracking-[3px] uppercase text-[#0070ba] opacity-60 mb-2.5">● Pendidikan</div>
+                    <div class="cv-line relative overflow-hidden h-2.5 rounded mb-2 bg-[#e8eef6] w-[85%]"></div>
+                    <div class="cv-line relative overflow-hidden h-2.5 rounded mb-2 bg-[#e8eef6] w-[60%]"></div>
+                    <div class="absolute -bottom-6 -right-6 w-28 h-28 rounded-full blur-xl"
+                        style="background:rgba(0,112,186,0.08)"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── HOW IT WORKS ── -->
+    <section id="how" class="py-12 md:py-24 px-4 md:px-12 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center gap-3 text-[10px] tracking-[4px] uppercase text-[#0070ba] mb-5">
+                <span>Proses</span><span class="flex-1 max-w-[80px] h-px bg-border"></span>
+            </div>
+            <h2 class="font-bold leading-tight text-navy mb-8 md:mb-16" style="font-size:clamp(28px,4vw,54px)">Tiga
+                Langkah<br><em class="italic text-blue">Mudah</em></h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-0.5 max-w-6xl mx-auto">
+            <div
+                class="reveal bg-surface hover:bg-surface2 p-6 md:p-10 relative overflow-hidden group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/30">
+                <div
+                    class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                </div>
+                <div class="text-[72px] font-black text-[#0070ba]/10 leading-none -tracking-[4px] mb-6">01</div>
+                <div class="text-3xl mb-4">🔐</div>
+                <h3 class="font-bold text-[22px] text-navy mb-3">Masuk dengan Google</h3>
+                <p class="text-[15px] text-muted leading-relaxed">Login dengan akun Google kamu dalam satu klik. Tidak
+                    perlu daftar manual — aman dan cepat.</p>
+            </div>
+            <div
+                class="reveal reveal-delay-1 bg-surface hover:bg-surface2 p-6 md:p-10 relative overflow-hidden group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/30">
+                <div
+                    class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                </div>
+                <div class="text-[72px] font-black text-[#0070ba]/10 leading-none -tracking-[4px] mb-6">02</div>
+                <div class="text-3xl mb-4">📝</div>
+                <h3 class="font-bold text-[22px] text-navy mb-3">Isi Data Diri</h3>
+                <p class="text-[15px] text-muted leading-relaxed">Lengkapi formulir dengan informasi pribadi, pengalaman
+                    kerja, pendidikan, dan keahlian Anda.</p>
+            </div>
+            <div
+                class="reveal reveal-delay-2 bg-surface hover:bg-surface2 p-6 md:p-10 relative overflow-hidden group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/30">
+                <div
+                    class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                </div>
+                <div class="text-[72px] font-black text-[#0070ba]/10 leading-none -tracking-[4px] mb-6">03</div>
+                <div class="text-3xl mb-4">✨</div>
+                <h3 class="font-bold text-[22px] text-navy mb-3">Generate &amp; Unduh</h3>
+                <p class="text-[15px] text-muted leading-relaxed">Klik generate dan biarkan AI membuat CV profesional
+                    Anda. Salin atau unduh hasilnya.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════
+     ── MAYAR.ID SPONSOR STRIP ──
+     ══════════════════════════════════════════════════════ -->
+    <section class="mayar-sponsor-strip py-5 px-4 md:px-12">
+        <div class="max-w-6xl mx-auto flex flex-col items-center gap-3 md:flex-row md:justify-between md:gap-5">
+
+            <!-- Top row on mobile: label + badge -->
+            <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-start">
+                <div class="text-[9px] tracking-[3px] uppercase text-[#718096] font-semibold whitespace-nowrap">Payment
+                    Partner</div>
+                <div class="h-px w-6 bg-[#ec4899]/30 shrink-0"></div>
+                <a href="https://mayar.id" target="_blank" rel="noopener"
+                    class="mayar-badge no-underline transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#ec4899]/25 shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="24" height="24" rx="6" fill="#ec4899" />
+                        <path d="M6 7h3l3 5 3-5h3v10h-3v-5.5L12 16.5 9 11.5V17H6V7z" fill="white" />
+                    </svg>
+                    <span class="mayar-logo-text">mayar.id</span>
+                    <span class="hidden sm:inline text-[9px] text-[#2563eb] font-medium opacity-70">✓
+                        Terverifikasi</span>
+                </a>
+            </div>
+
+            <!-- Bottom row on mobile: trust badges scroll -->
+            <div
+                class="flex items-center gap-1.5 overflow-x-auto scrollbar-none w-full md:w-auto md:flex-wrap md:justify-end pb-0.5">
+                <div class="mayar-trust-badge shrink-0">🔒 SSL</div>
+                <div class="mayar-trust-badge shrink-0">QRIS</div>
+                <div class="mayar-trust-badge shrink-0">Transfer</div>
+                <div class="mayar-trust-badge shrink-0">VA Bank</div>
+                <div class="mayar-trust-badge shrink-0">GoPay</div>
+                <div class="mayar-trust-badge shrink-0">OVO</div>
+                <div class="mayar-trust-badge shrink-0">Dana</div>
+                <div class="mayar-trust-badge shrink-0">Kartu Kredit</div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ── PRICING ── -->
+    <section id="pricing" class="py-12 md:py-24 px-4 md:px-12 bg-surface relative">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent">
+        </div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 text-[10px] tracking-[4px] uppercase text-[#0070ba] mb-5">
+                <span>Paket</span><span class="flex-1 max-w-[80px] h-px bg-border"></span>
+            </div>
+            <h2 class="font-bold leading-tight text-navy mb-4" style="font-size:clamp(28px,4vw,54px)">Pilih Paket<br><em
+                    class="italic text-blue">yang Tepat</em></h2>
+
+            <!-- Mayar.id secure payment note -->
+            <div class="flex items-center gap-2.5 mb-10 md:mb-16">
+                <a href="https://mayar.id" target="_blank" rel="noopener"
+                    class="inline-flex items-center gap-2 bg-[#fce7f3] border border-[#ec4899]/40 px-4 py-2 rounded-full no-underline transition-all hover:bg-[#fbcfe8] hover:border-[#ec4899]/70 hover:-translate-y-0.5 hover:shadow-md hover:shadow-[#ec4899]/20">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <rect width="24" height="24" rx="6" fill="#ec4899" />
+                        <path d="M6 7h3l3 5 3-5h3v10h-3v-5.5L12 16.5 9 11.5V17H6V7z" fill="white" />
+                    </svg>
+                    <span class="text-[11px] font-semibold text-[#2563eb]">Pembayaran aman &amp; mudah via
+                        <strong>Mayar.id</strong></span>
+                    <span class="text-[10px] text-[#2563eb]/60">— QRIS · Transfer · E-Wallet · Kartu Kredit</span>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <!-- FREE -->
+                <div
+                    class="reveal bg-white p-6 lg:p-10 relative transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/40 flex flex-col">
+                    <div class="text-[10px] tracking-[3px] uppercase text-muted font-semibold mb-5">Free</div>
+                    <div class="font-black text-[38px] text-navy leading-none mb-1">Rp0 <span
+                            class="text-sm font-normal text-muted">/bulan</span></div>
+                    <div class="text-[11px] text-muted mb-6 tracking-wide">Selamanya gratis</div>
+                    <ul class="list-none mb-8 space-y-2 flex-1">
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>3 generate CV per hari</li>
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Semua template tersedia</li>
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Export ke PDF</li>
+                        <li class="text-sm text-muted py-1.5 flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>CVira AI powered</li>
+                    </ul>
+                    <a href="#generator" onclick="openLoginModal(event)"
+                        class="block w-full text-center bg-[#ffc439] hover:bg-[#ffca5c] text-navy font-bold text-[13px] py-3.5 rounded border border-[#f0b429] no-underline transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-yellow/40 whitespace-nowrap">Mulai
+                        Gratis</a>
+                </div>
+
+                <!-- PRO BULANAN (featured) -->
+                <div
+                    class="reveal reveal-delay-1 bg-white border-2 border-[#0070ba] p-6 lg:p-10 relative transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#0070ba]/15 flex flex-col">
+                    <div
+                        class="absolute -top-px left-1/2 -translate-x-1/2 bg-[#0070ba] text-white text-[9px] font-semibold tracking-[3px] px-4 py-1 whitespace-nowrap">
+                        POPULER</div>
+                    <div class="text-[10px] tracking-[3px] uppercase text-muted font-semibold mb-5">Pro Bulanan</div>
+                    <div class="font-black text-[38px] text-navy leading-none mb-1">Rp49K <span
+                            class="text-sm font-normal text-muted">/bulan</span></div>
+                    <div class="text-[11px] text-muted mb-6 tracking-wide">Bayar bulanan, batalkan kapan saja</div>
+                    <ul class="list-none mb-6 space-y-2 flex-1">
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Unlimited generate CV</li>
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Prioritas antrian AI</li>
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Semua gaya penulisan</li>
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Export ke PDF</li>
+                        <li class="text-sm text-muted py-1.5 flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Support prioritas</li>
+                    </ul>
+                    <!-- Mayar.id CTA -->
+                    <a href="#" id="proMonthlyBtn" target="_blank"
+                        class="mayar-btn relative overflow-hidden w-full flex items-center justify-center gap-2 text-white font-bold text-[12px] lg:text-[13px] py-3.5 rounded no-underline cursor-pointer transition-all duration-300 mb-2.5 whitespace-nowrap">
+                        <div class="btn-shine"></div>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" class="shrink-0">
+                            <rect width="24" height="24" rx="5" fill="rgba(255,255,255,0.25)" />
+                            <path d="M6 7h3l3 5 3-5h3v10h-3v-5.5L12 16.5 9 11.5V17H6V7z" fill="white" />
+                        </svg>
+                        <span>Bayar via Mayar.id</span>
+                    </a>
+                    <div class="flex items-center justify-center gap-1.5 flex-wrap text-center">
+                        <span
+                            class="inline-flex items-center gap-1 text-[10px] text-[#ec4899] font-medium whitespace-nowrap">
+                            <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                                <path d="M6 1L7.5 4.5H11L8.5 7L9.5 10.5L6 8.5L2.5 10.5L3.5 7L1 4.5H4.5L6 1Z"
+                                    fill="#ec4899" />
+                            </svg>
+                            Aman &amp; terenkripsi
+                        </span>
+                        <span class="text-[10px] text-[#ec4899]/60 hidden sm:inline">·</span>
+                        <span class="text-[10px] text-[#ec4899]/70 font-medium whitespace-nowrap">Powered by
+                            Mayar.id</span>
+                    </div>
+                </div>
+
+                <!-- PRO TAHUNAN -->
+                <div
+                    class="reveal reveal-delay-2 bg-white p-6 lg:p-10 relative transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/40 flex flex-col md:col-span-2 xl:col-span-1">
+                    <div
+                        class="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full mb-5 self-start">
+                        💰 Hemat 32%</div>
+                    <div class="text-[10px] tracking-[3px] uppercase text-muted font-semibold mb-3">Pro Tahunan</div>
+                    <div class="font-black text-[38px] text-navy leading-none mb-1">Rp399K <span
+                            class="text-sm font-normal text-muted">/tahun</span></div>
+                    <div class="text-[11px] text-muted mb-6 tracking-wide">Setara Rp33K/bulan · hemat vs bulanan</div>
+                    <ul class="list-none mb-6 space-y-2 flex-1">
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Unlimited generate CV</li>
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Prioritas antrian AI</li>
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Semua gaya penulisan</li>
+                        <li class="text-sm text-muted py-1.5 border-b border-border flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Export ke PDF</li>
+                        <li class="text-sm text-muted py-1.5 flex items-center gap-2.5"><span
+                                class="text-[#0070ba] font-bold shrink-0">✓</span>Support prioritas</li>
+                    </ul>
+                    <!-- Mayar.id CTA -->
+                    <a href="#" id="proYearlyBtn" target="_blank"
+                        class="mayar-btn relative overflow-hidden w-full flex items-center justify-center gap-2 text-white font-bold text-[12px] lg:text-[13px] py-3.5 rounded no-underline cursor-pointer transition-all duration-300 mb-2.5 whitespace-nowrap">
+                        <div class="btn-shine"></div>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" class="shrink-0">
+                            <rect width="24" height="24" rx="5" fill="rgba(255,255,255,0.25)" />
+                            <path d="M6 7h3l3 5 3-5h3v10h-3v-5.5L12 16.5 9 11.5V17H6V7z" fill="white" />
+                        </svg>
+                        <span>Bayar via Mayar.id</span>
+                    </a>
+                    <div class="flex items-center justify-center gap-1.5 flex-wrap text-center">
+                        <span
+                            class="inline-flex items-center gap-1 text-[10px] text-[#ec4899] font-medium whitespace-nowrap">
+                            <svg width="9" height="9" viewBox="0 0 12 12" fill="none">
+                                <path d="M6 1L7.5 4.5H11L8.5 7L9.5 10.5L6 8.5L2.5 10.5L3.5 7L1 4.5H4.5L6 1Z"
+                                    fill="#ec4899" />
+                            </svg>
+                            Aman &amp; terenkripsi
+                        </span>
+                        <span class="text-[10px] text-[#ec4899]/60 hidden sm:inline">·</span>
+                        <span class="text-[10px] text-[#ec4899]/70 font-medium whitespace-nowrap">Powered by
+                            Mayar.id</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment methods footer strip inside pricing -->
+            <div class="mt-10 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-5">
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] text-muted font-medium">Metode pembayaran:</span>
+                    <div class="flex gap-2 flex-wrap">
+                        <span
+                            class="text-[10px] bg-white border border-border px-2.5 py-1 rounded font-semibold text-gray-600">QRIS</span>
+                        <span
+                            class="text-[10px] bg-white border border-border px-2.5 py-1 rounded font-semibold text-gray-600">Transfer
+                            Bank</span>
+                        <span
+                            class="text-[10px] bg-white border border-border px-2.5 py-1 rounded font-semibold text-gray-600">GoPay</span>
+                        <span
+                            class="text-[10px] bg-white border border-border px-2.5 py-1 rounded font-semibold text-gray-600">OVO</span>
+                        <span
+                            class="text-[10px] bg-white border border-border px-2.5 py-1 rounded font-semibold text-gray-600">Dana</span>
+                        <span
+                            class="text-[10px] bg-white border border-border px-2.5 py-1 rounded font-semibold text-gray-600">ShopeePay</span>
+                        <span
+                            class="text-[10px] bg-white border border-border px-2.5 py-1 rounded font-semibold text-gray-600">Visa
+                            / Mastercard</span>
+                    </div>
+                </div>
+                <a href="https://mayar.id" target="_blank" rel="noopener"
+                    class="flex items-center gap-2 no-underline group">
+                    <span class="text-[10px] text-muted group-hover:text-[#2563eb] transition-colors">Secured by</span>
+                    <div
+                        class="flex items-center gap-1.5 bg-white border border-[#ec4899]/30 px-2.5 py-1 rounded-full group-hover:border-[#ec4899] transition-all">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <rect width="24" height="24" rx="6" fill="#ec4899" />
+                            <path d="M6 7h3l3 5 3-5h3v10h-3v-5.5L12 16.5 9 11.5V17H6V7z" fill="white" />
+                        </svg>
+                        <span class="text-[11px] font-bold text-[#2563eb]">Mayar.id</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── GENERATOR ── -->
+    <section id="generator" class="py-12 md:py-24 px-4 md:px-12 bg-surface relative">
+        <div class="absolute top-0 left-0 right-0 h-px opacity-20"
+            style="background:linear-gradient(90deg,transparent,#0070ba,transparent)"></div>
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center gap-3 text-[10px] tracking-[4px] uppercase text-[#0070ba] mb-5">
+                <span>Generator</span><span class="flex-1 max-w-[80px] h-px bg-border"></span>
+            </div>
+            <h2 class="font-bold leading-tight text-navy mb-8 md:mb-16" style="font-size:clamp(28px,4vw,54px)">Buat CV
+                Anda<br><em class="italic text-blue">Sekarang</em></h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
+                <div id="creditBar"
+                    class="hidden col-span-full bg-[#0070ba]/4 border border-[#0070ba]/15 px-5 py-3 flex items-center justify-between gap-3">
+                    <span id="creditInfo" class="text-[11px] text-muted tracking-wide">Memuat...</span>
+                    <a href="#pricing" id="upgradeBtn" style="display:none;"
+                        class="text-[10px] bg-[#ffc439] hover:bg-[#ffca5c] text-navy border border-[#f0b429] px-3 py-1.5 transition-all no-underline font-bold rounded">Upgrade</a>
+                </div>
+                <!-- Login gate -->
+                <div id="loginGate"
+                    class="login-gate flex-col items-center justify-center px-10 py-16 text-center gap-4 bg-white border border-border min-h-[300px] col-span-full">
+                    <div class="text-5xl opacity-40">🔒</div>
+                    <div class="text-[22px] font-bold text-navy">Masuk untuk Generate CV</div>
+                    <p class="text-sm text-muted">Login dengan Google untuk mulai membuat CV profesionalmu.</p>
+                    <button onclick="openLoginModal()"
+                        class="relative overflow-hidden bg-[#ffc439] hover:bg-[#ffca5c] text-navy font-bold text-[12px] tracking-widest uppercase px-9 py-4 rounded-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-yellow/40">Masuk
+                        dengan Google</button>
+                </div>
+                <!-- Form panel -->
+                <div class="form-panel flex flex-col gap-0" style="display:none">
+                    <div class="flex border-b border-[#d0daea] mb-7 overflow-x-auto scrollbar-none">
+                        <button
+                            class="tab-btn text-[10px] sm:text-[11px] tracking-widest uppercase text-[#0070ba] bg-[#0070ba]/8 border-none px-3 sm:px-5 py-2.5 cursor-pointer transition-colors duration-200 font-semibold rounded-t active whitespace-nowrap"
+                            onclick="switchTab(this,'personal')">Pribadi</button>
+                        <button
+                            class="tab-btn text-[10px] sm:text-[11px] tracking-widest uppercase text-muted bg-[#e8eef6] hover:bg-[#f4f7fb] border border-b-0 border-[#d0daea] px-3 sm:px-5 py-2.5 cursor-pointer transition-colors duration-200 font-medium rounded-t whitespace-nowrap"
+                            onclick="switchTab(this,'experience')">Pengalaman</button>
+                        <button
+                            class="tab-btn text-[10px] sm:text-[11px] tracking-widest uppercase text-muted bg-[#e8eef6] hover:bg-[#f4f7fb] border border-b-0 border-[#d0daea] px-3 sm:px-5 py-2.5 cursor-pointer transition-colors duration-200 font-medium rounded-t whitespace-nowrap"
+                            onclick="switchTab(this,'education')">Pendidikan</button>
+                        <button
+                            class="tab-btn text-[10px] sm:text-[11px] tracking-widest uppercase text-muted bg-[#e8eef6] hover:bg-[#f4f7fb] border border-b-0 border-[#d0daea] px-3 sm:px-5 py-2.5 cursor-pointer transition-colors duration-200 font-medium rounded-t whitespace-nowrap"
+                            onclick="switchTab(this,'skills')">Keahlian</button>
+                    </div>
+                    <!-- TAB: Personal -->
+                    <div class="tab-content active" id="tab-personal">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5">
+                            <div><label
+                                    class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Nama
+                                    Lengkap *</label><input type="text" id="f_name" placeholder="Budi Santoso"
+                                    class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200">
+                            </div>
+                            <div><label
+                                    class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Jabatan
+                                    / Profesi *</label><input type="text" id="f_profession"
+                                    placeholder="Software Engineer"
+                                    class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5">
+                            <div><label
+                                    class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Email
+                                    *</label><input type="email" id="f_email" placeholder="budi@email.com"
+                                    class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200">
+                            </div>
+                            <div><label
+                                    class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Nomor
+                                    Telepon</label><input type="text" id="f_phone" placeholder="+62 812 xxxx xxxx"
+                                    class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5">
+                            <div><label
+                                    class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Lokasi</label><input
+                                    type="text" id="f_location" placeholder="Jakarta, Indonesia"
+                                    class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200">
+                            </div>
+                            <div><label
+                                    class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">LinkedIn
+                                    / Portfolio</label><input type="text" id="f_linkedin"
+                                    placeholder="linkedin.com/in/budi"
+                                    class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200">
+                            </div>
+                        </div>
+                        <div class="mb-5"><label
+                                class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Tentang
+                                Diri (opsional)</label><textarea id="f_summary"
+                                placeholder="Singkat tentang diri Anda, pengalaman, dan tujuan karir..."
+                                class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200 resize-y min-h-[100px] leading-relaxed"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div><label
+                                    class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Bahasa
+                                    CV</label><select id="f_lang"
+                                    class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue transition-all cursor-pointer appearance-none pr-10">
+                                    <option value="id">Bahasa Indonesia</option>
+                                    <option value="en">English</option>
+                                </select></div>
+                            <div><label
+                                    class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Gaya
+                                    Penulisan AI</label><select id="f_style"
+                                    class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue transition-all cursor-pointer appearance-none pr-10">
+                                    <option value="profesional">Profesional &amp; Formal</option>
+                                    <option value="modern">Modern &amp; Dinamis</option>
+                                    <option value="kreatif">Kreatif &amp; Inovatif</option>
+                                    <option value="akademik">Akademik &amp; Riset</option>
+                                </select></div>
+                        </div>
+                    </div>
+                    <!-- TAB: Experience -->
+                    <div class="tab-content" id="tab-experience">
+                        <div id="exp-list"></div>
+                        <button onclick="addExperience()"
+                            class="w-full flex items-center justify-center bg-[#0070ba] hover:bg-[#0085d4] text-white text-[11px] font-bold uppercase tracking-wide px-4 py-2.5 rounded-md border-none cursor-pointer transition-all duration-200 hover:-translate-y-0.5 mb-4">Tambah
+                            Pengalaman</button>
+                    </div>
+                    <!-- TAB: Education -->
+                    <div class="tab-content" id="tab-education">
+                        <div id="edu-list"></div>
+                        <button onclick="addEducation()"
+                            class="w-full flex items-center justify-center bg-[#0070ba] hover:bg-[#0085d4] text-white text-[11px] font-bold uppercase tracking-wide px-4 py-2.5 rounded-md border-none cursor-pointer transition-all duration-200 hover:-translate-y-0.5 mb-4">Tambah
+                            Pendidikan</button>
+                    </div>
+                    <!-- TAB: Skills -->
+                    <div class="tab-content" id="tab-skills">
+                        <div class="mb-5">
+                            <label
+                                class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Tambah
+                                Keahlian</label>
+                            <input type="text" id="skillInput" placeholder="Ketik keahlian lalu tekan Enter"
+                                onkeydown="handleSkillInput(event)"
+                                class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200">
+                            <div id="skillsTags" class="flex flex-wrap gap-2 mt-2.5"></div>
+                        </div>
+                        <div class="mb-5"><label
+                                class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Sertifikasi</label><textarea
+                                id="f_certs" placeholder="Google Cloud Professional, AWS Solutions Architect, ..."
+                                class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200 resize-y min-h-[80px] leading-relaxed"></textarea>
+                        </div>
+                        <div><label
+                                class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Penghargaan
+                                / Prestasi</label><textarea id="f_awards" placeholder="Juara 1 Hackathon 2023, ..."
+                                class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm font-light outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all duration-200 resize-y min-h-[80px] leading-relaxed"></textarea>
+                        </div>
+                    </div>
+                    <!-- Generate button -->
+                    <button id="generateBtn" onclick="generateCV()"
+                        class="generate-btn relative overflow-hidden w-full flex items-center justify-center gap-3 text-white font-bold text-[13px] tracking-[3px] uppercase py-[18px] border-none cursor-pointer transition-all duration-200 mt-8 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">
+                        <div class="btn-shine"></div>
+                        <div id="spinner" class="spinner"></div>
+                        <span class="btn-text relative z-10">✦ Generate CV dengan AI</span>
+                    </button>
+                </div>
+                <!-- Output panel -->
+                <div class="flex flex-col gap-4">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="text-[11px] tracking-[3px] uppercase text-muted font-medium">Preview CV</div>
+                        <div class="flex gap-2">
+                            <button onclick="copyCV()" id="copyBtn" style="display:none;"
+                                class="items-center gap-1.5 bg-[#0070ba] hover:bg-[#0085d4] text-white text-[10px] font-bold uppercase tracking-wide px-3.5 py-2 rounded cursor-pointer transition-all duration-200 hover:-translate-y-px hover:shadow-md">Salin</button>
+                            <button onclick="printCV()" id="printBtn" style="display:none;"
+                                class="items-center gap-1.5 bg-navy hover:bg-navy/80 text-white text-[10px] font-bold uppercase tracking-wide px-3.5 py-2 rounded cursor-pointer transition-all duration-200 hover:-translate-y-px hover:shadow-md">Cetak
+                                PDF</button>
+                        </div>
+                    </div>
+                    <div id="cvOutputBox" class="bg-white border border-[#d0daea] relative" style="min-height:500px">
+                        <div id="cvEmpty"
+                            class="absolute inset-0 flex flex-col items-center justify-center gap-4 text-muted">
+                            <div class="text-5xl opacity-30">📄</div>
+                            <p class="text-[11px] tracking-widest uppercase opacity-50">CV Anda akan muncul di sini</p>
+                            <p class="text-[10px] opacity-40 -mt-2">Isi form dan klik generate</p>
+                        </div>
+                        <div id="cv-rendered" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FEATURES ── -->
+    <section id="features" class="py-12 md:py-24 px-4 md:px-12 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex items-center gap-3 text-[10px] tracking-[4px] uppercase text-[#0070ba] mb-5">
+                <span>Keunggulan</span><span class="flex-1 max-w-[80px] h-px bg-border"></span>
+            </div>
+            <h2 class="font-bold leading-tight text-navy mb-8 md:mb-16" style="font-size:clamp(28px,4vw,54px)">Mengapa
+                <em class="italic text-blue">CVira</em>?</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0.5 max-w-6xl mx-auto">
+            <div
+                class="reveal bg-surface hover:bg-surface2 p-5 md:p-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/30">
+                <div class="text-3xl mb-5">🧠</div>
+                <h3 class="font-bold text-[18px] text-navy mb-2.5">AI Generatif Terkini</h3>
+                <p class="text-sm text-muted leading-relaxed">Didukung model AI canggih yang menghasilkan teks CV
+                    berkualitas tinggi, natural, dan ATS-friendly.</p>
+            </div>
+            <div
+                class="reveal reveal-delay-1 bg-surface hover:bg-surface2 p-5 md:p-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/30">
+                <div class="text-3xl mb-5">🎯</div>
+                <h3 class="font-bold text-[18px] text-navy mb-2.5">Disesuaikan Industri</h3>
+                <p class="text-sm text-muted leading-relaxed">AI memahami konteks industri dan menyesuaikan bahasa serta
+                    format CV sesuai bidang pekerjaan.</p>
+            </div>
+            <div
+                class="reveal reveal-delay-2 bg-surface hover:bg-surface2 p-5 md:p-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/30">
+                <div class="text-3xl mb-5">🔒</div>
+                <h3 class="font-bold text-[18px] text-navy mb-2.5">Privasi Terjaga</h3>
+                <p class="text-sm text-muted leading-relaxed">Data Anda hanya tersimpan di browser. Tidak ada data yang
+                    dikirim ke server pihak ketiga.</p>
+            </div>
+            <div
+                class="reveal reveal-delay-3 bg-surface hover:bg-surface2 p-5 md:p-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#0070ba]/10 border border-[#d0daea] hover:border-[#0070ba]/30">
+                <div class="text-3xl mb-5">⚡</div>
+                <h3 class="font-bold text-[18px] text-navy mb-2.5">Bayar Mudah &amp; Aman</h3>
+                <p class="text-sm text-muted leading-relaxed">Upgrade ke Pro dengan mudah melalui <strong
+                        class="text-[#2563eb]">Mayar.id</strong> — QRIS, transfer bank, e-wallet, kartu kredit.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FOOTER ── -->
+    <footer class="bg-navy pt-[72px]">
+        <div class="max-w-6xl mx-auto px-6 md:px-12">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 pb-14 border-b border-white/10">
+                <div>
+                    <div class="text-[26px] font-extrabold text-white mb-3.5 -tracking-wide">CV<span
+                            class="text-yellow">ira</span></div>
+                    <p class="text-[13px] text-white/55 leading-[1.75] mb-5 max-w-[280px]">Platform AI untuk membuat CV
+                        profesional secara instan. Pembayaran aman via Mayar.id.</p>
+                    <!-- Mayar.id footer badge -->
+                    <a href="https://mayar.id" target="_blank" rel="noopener"
+                        class="inline-flex items-center gap-2 bg-white/8 border border-[#ec4899]/30 px-3 py-1.5 rounded-full no-underline hover:bg-white/12 hover:border-[#ec4899]/60 transition-all mb-4">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <rect width="24" height="24" rx="6" fill="#ec4899" />
+                            <path d="M6 7h3l3 5 3-5h3v10h-3v-5.5L12 16.5 9 11.5V17H6V7z" fill="white" />
+                        </svg>
+                        <span class="text-[11px] font-semibold text-[#ec4899]">Powered by Mayar.id</span>
+                    </a>
+                    <div class="flex gap-2">
+                        <a href="#"
+                            class="w-9 h-9 rounded-lg bg-white/10 border border-white/15 text-white/70 flex items-center justify-center text-[13px] font-bold no-underline transition-all duration-200 hover:bg-[#ffc439] hover:border-yellow hover:text-navy hover:-translate-y-0.5">𝕏</a>
+                        <a href="#"
+                            class="w-9 h-9 rounded-lg bg-white/10 border border-white/15 text-white/70 flex items-center justify-center text-[13px] font-bold no-underline transition-all duration-200 hover:bg-[#ffc439] hover:border-yellow hover:text-navy hover:-translate-y-0.5">in</a>
+                        <a href="#"
+                            class="w-9 h-9 rounded-lg bg-white/10 border border-white/15 text-white/70 flex items-center justify-center text-[13px] font-bold no-underline transition-all duration-200 hover:bg-[#ffc439] hover:border-yellow hover:text-navy hover:-translate-y-0.5">ig</a>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold tracking-widest uppercase text-white/40 mb-4">Navigasi</div>
+                    <ul class="list-none space-y-2.5">
+                        <li><a href="#hero"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Beranda</a>
+                        </li>
+                        <li><a href="#how"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Cara
+                                Kerja</a></li>
+                        <li><a href="#generator"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Generator
+                                CV</a></li>
+                        <li><a href="#pricing"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Harga</a>
+                        </li>
+                        <li><a href="#features"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Fitur</a>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold tracking-widest uppercase text-white/40 mb-4">Pembayaran</div>
+                    <ul class="list-none space-y-2.5 mb-6">
+                        <li><a href="https://mayar.id" target="_blank"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Mayar.id
+                                — Payment Gateway</a></li>
+                        <li><a href="#pricing"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Paket
+                                Pro Bulanan</a></li>
+                        <li><a href="#pricing"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Paket
+                                Pro Tahunan</a></li>
+                        <li><a href="https://mayar.id" target="_blank"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">QRIS
+                                &amp; E-Wallet</a></li>
+                    </ul>
+                    <div class="text-[10px] font-bold tracking-widest uppercase text-white/40 mb-4">Resource</div>
+                    <ul class="list-none space-y-2.5">
+                        <li><a href="#"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Panduan
+                                Penggunaan</a></li>
+                        <li><a href="#"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Tips
+                                CV Terbaik</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold tracking-widest uppercase text-white/40 mb-4">Legal</div>
+                    <ul class="list-none space-y-2.5 mb-6">
+                        <li><a href="#"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Syarat
+                                &amp; Ketentuan</a></li>
+                        <li><a href="#"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Kebijakan
+                                Privasi</a></li>
+                        <li><a href="#"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Kebijakan
+                                Cookie</a></li>
+                    </ul>
+                    <div class="text-[10px] font-bold tracking-widest uppercase text-white/40 mb-4">Teknologi</div>
+                    <ul class="list-none space-y-2.5">
+                        <li><a href="#"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">CVira
+                                AI Engine</a></li>
+                        <li><a href="https://mayar.id" target="_blank"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Mayar.id
+                                Payment</a></li>
+                        <li><a href="#"
+                                class="text-[13px] text-white/60 hover:text-yellow no-underline transition-colors">Single
+                                Page App</a></li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Stats strip -->
+            <div class="flex flex-wrap items-center justify-center py-8 border-b border-white/8">
+                <div class="flex flex-col items-center px-10 py-2"><span
+                        class="text-[22px] font-extrabold text-yellow leading-none">10K+</span><span
+                        class="text-[11px] text-white/45 mt-1 text-center">CV Dibuat</span></div>
+                <div class="w-px h-8 bg-white/12 hidden sm:block"></div>
+                <div class="flex flex-col items-center px-10 py-2"><span
+                        class="text-[22px] font-extrabold text-yellow leading-none">98%</span><span
+                        class="text-[11px] text-white/45 mt-1 text-center">Kepuasan Pengguna</span></div>
+                <div class="w-px h-8 bg-white/12 hidden sm:block"></div>
+                <div class="flex flex-col items-center px-10 py-2"><span
+                        class="text-[22px] font-extrabold text-yellow leading-none">3 detik</span><span
+                        class="text-[11px] text-white/45 mt-1 text-center">Rata-rata Generate</span></div>
+                <div class="w-px h-8 bg-white/12 hidden sm:block"></div>
+                <div class="flex flex-col items-center px-10 py-2"><span
+                        class="text-[22px] font-extrabold text-yellow leading-none">Aman</span><span
+                        class="text-[11px] text-white/45 mt-1 text-center">via Mayar.id</span></div>
+            </div>
+            <!-- Bottom bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 py-5">
+                <div class="text-[11px] text-white/30 tracking-wide">© 2025 CVira — Hak Cipta Dilindungi</div>
+                <div class="flex items-center gap-2 text-[12px] text-white/30">
+                    <a href="#" class="text-white/40 hover:text-yellow no-underline transition-colors">Privasi</a>
+                    <span>·</span>
+                    <a href="#" class="text-white/40 hover:text-yellow no-underline transition-colors">Syarat</a>
+                    <span>·</span>
+                    <a href="#" class="text-white/40 hover:text-yellow no-underline transition-colors">Kontak</a>
+                </div>
+                <div class="text-[11px] italic text-white/25">Crafted with AI, refined by you</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- TOAST -->
+    <div id="toast"
+        class="toast fixed bottom-8 right-8 bg-white border border-border text-gray-700 px-6 py-3.5 z-[999] flex items-center gap-2.5 text-[12px] tracking-wide shadow-xl shadow-[#0070ba]/12 rounded-sm">
+        <span id="toastIcon">✓</span>
+        <span id="toastMsg">Berhasil</span>
+    </div>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal"
+        class="modal-overlay fixed inset-0 bg-navy/60 backdrop-blur-lg z-[500] items-center justify-center p-6">
+        <div class="modal-box bg-white border border-border p-12 w-full relative shadow-2xl shadow-[#0070ba]/15"
+            style="max-width:400px">
+            <div class="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue to-blue-light rounded-t"></div>
+            <button onclick="closeLoginModal()"
+                style="position:absolute;top:12px;right:16px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#f4f7fb;border:1px solid #d0daea;color:#718096;cursor:pointer;font-size:20px;line-height:1;border-radius:50%;transition:all 0.2s;"
+                onmouseover="this.style.background='#e8eef6';this.style.color='#1a2332';this.style.borderColor='#0070ba'"
+                onmouseout="this.style.background='#f4f7fb';this.style.color='#718096';this.style.borderColor='#d0daea'">&times;</button>
+            <div class="text-5xl mb-4 text-center">📄</div>
+            <div class="font-bold text-[28px] text-navy mb-1.5 text-center">Masuk ke<br><span
+                    class="text-blue">CVira</span></div>
+            <p class="text-sm text-muted mb-7 text-center leading-relaxed mt-2.5">Login dengan akun Google kamu untuk
+                mulai membuat CV profesional dengan AI.</p>
+            <a href="/auth/google"
+                class="flex items-center justify-center gap-3 w-full bg-white text-[#3c4043] border border-[#dadce0] px-6 py-3.5 text-[15px] font-medium cursor-pointer no-underline transition-all duration-200 hover:bg-gray-50 hover:shadow-xl hover:shadow-black/15 mb-2 rounded">
+                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+                        fill="#4285F4" />
+                    <path
+                        d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+                        fill="#34A853" />
+                    <path
+                        d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"
+                        fill="#FBBC05" />
+                    <path
+                        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"
+                        fill="#EA4335" />
+                </svg>
+                Lanjut dengan Google
+            </a>
+            <p class="text-[11px] text-muted leading-relaxed text-center mt-4">Dengan masuk, kamu setuju dengan syarat
+                &amp; ketentuan.<br>Belum punya paket Pro? <a href="#pricing" onclick="closeLoginModal()"
+                    class="text-[#0070ba] hover:underline">Lihat paket</a></p>
+        </div>
+    </div>
+
+    <script>
+        var skills = [], experiences = [], educations = [], currentUser = null;
+
+        window.addEventListener('DOMContentLoaded', function () {
+            var loader = document.getElementById('pageLoader');
+            if (loader) { setTimeout(function () { loader.classList.add('hide'); }, 400); }
+            addExperience(); addEducation(); loadUser(); handleAuthRedirect(); setupPricingLinks();
+            var modal = document.getElementById('loginModal');
+            if (modal) modal.addEventListener('click', function (e) { if (e.target === this) closeLoginModal(); });
+        });
+
+        function setupPricingLinks() {
+            fetch('/api/config').then(r => r.json()).then(d => {
+                if (d.proLink) {
+                    document.getElementById('proMonthlyBtn').href = d.proLink;
+                    document.getElementById('proYearlyBtn').href = d.proLink;
+                }
+            }).catch(() => { });
+        }
+
+        function handleAuthRedirect() {
+            var p = new URLSearchParams(window.location.search), auth = p.get('auth'), plan = p.get('plan');
+            if (!auth) return;
+            window.history.replaceState({}, '', '/');
+            if (auth === 'ok') showToast(plan === 'pro' ? 'Selamat datang! Paket Pro aktif.' : 'Berhasil masuk! Kamu menggunakan paket Free.', 'success');
+            else if (auth === 'expired') showToast('Link masuk sudah kadaluarsa.', 'error');
+            else if (auth === 'invalid') showToast('Link masuk tidak valid.', 'error');
+            // Handle sukses dari Mayar.id callback
+            var mayarStatus = p.get('mayar_status');
+            if (mayarStatus === 'success') {
+                showToast('Pembayaran via Mayar.id berhasil! Paket Pro aktif 🎉', 'success');
+                loadUser();
+            }
+        }
+
+        function loadUser() {
+            fetch('/auth/me').then(r => r.json()).then(u => { currentUser = u; updateUserUI(u); }).catch(() => updateUserUI({ loggedIn: false }));
+        }
+
+        function updateUserUI(user) {
+            var uBar = document.getElementById('userBar'), navAct = document.getElementById('navActions'),
+                gate = document.getElementById('loginGate'), fp = document.querySelector('.form-panel'),
+                cBar = document.getElementById('creditBar'), upBtn = document.getElementById('upgradeBtn'),
+                badge = document.getElementById('userPlanBadge'), nameEl = document.getElementById('userNameDisplay'),
+                tokenEl = document.getElementById('navTokenInfo');
+            updateSidebarUser(user);
+            if (!user || !user.loggedIn) {
+                uBar.classList.remove('show'); navAct.style.display = ''; gate.classList.add('show');
+                if (cBar) cBar.style.display = 'none'; if (tokenEl) tokenEl.style.display = 'none';
+                var dot = document.getElementById('hamLoggedDot'); if (dot) dot.style.display = 'none';
+                if (fp) fp.style.display = 'none'; return;
+            }
+            uBar.classList.add('show'); navAct.style.display = 'none'; gate.classList.remove('show');
+            if (fp) fp.style.display = ''; if (cBar) cBar.style.display = 'none';
+            var dot2 = document.getElementById('hamLoggedDot'); if (dot2) dot2.style.display = 'block';
+            nameEl.textContent = user.name || user.email;
+            badge.textContent = user.plan === 'pro' ? 'PRO' : 'FREE';
+            var av = document.getElementById('userAvatar');
+            if (user.picture) { av.src = user.picture; av.style.display = 'block'; } else { av.style.display = 'none'; }
+            if (tokenEl) {
+                tokenEl.style.display = '';
+                var tok = user.plan === 'pro' ? (user.balance || 0) + ' token' : ((user.freeLeft != null ? user.freeLeft : user.freeLimit) || 0) + ' token';
+                tokenEl.textContent = tok;
+                var isLow = user.plan === 'pro' ? (user.balance || 0) <= 5 : (user.freeLeft != null ? user.freeLeft : user.freeLimit) <= 0;
+                tokenEl.className = tokenEl.className.replace(/ text-red-500/g, '') + (isLow ? ' text-red-500' : '');
+                if (upBtn) upBtn.style.display = isLow ? '' : 'none';
+            }
+        }
+
+        function updateSidebarUser(user) {
+            var uSec = document.getElementById('sidebarUserSection'), gSec = document.getElementById('sidebarGuestSection'),
+                gCta = document.getElementById('sidebarGuestCta'), uCta = document.getElementById('sidebarUserCta');
+            if (!user || !user.loggedIn) {
+                if (uSec) uSec.style.display = 'none'; if (gSec) gSec.style.display = '';
+                if (gCta) gCta.style.display = ''; if (uCta) uCta.style.display = 'none'; return;
+            }
+            if (uSec) uSec.style.display = ''; if (gSec) gSec.style.display = 'none';
+            if (gCta) gCta.style.display = 'none'; if (uCta) uCta.style.display = '';
+            var sName = document.getElementById('sidebarUserName'), sEmail = document.getElementById('sidebarUserEmail'),
+                sAv = document.getElementById('sidebarAvatar'), sAvPh = document.getElementById('sidebarAvatarPlaceholder'),
+                sToken = document.getElementById('sidebarTokenChip'), sPlan = document.getElementById('sidebarPlanChip');
+            if (sName) sName.textContent = user.name || user.email || 'Pengguna';
+            if (sEmail) sEmail.textContent = user.email || '';
+            if (sAv && user.picture) { sAv.src = user.picture; sAv.style.display = 'block'; if (sAvPh) sAvPh.style.display = 'none'; }
+            if (sPlan) { sPlan.textContent = user.plan === 'pro' ? 'PRO' : 'FREE'; sPlan.style.background = user.plan === 'pro' ? '#0070ba' : '#ffc439'; sPlan.style.color = user.plan === 'pro' ? '#fff' : '#1a2332'; }
+            if (sToken) {
+                var tv = user.plan === 'pro' ? (user.balance || 0) + ' token' : ((user.freeLeft != null ? user.freeLeft : user.freeLimit) || 0) + ' token';
+                sToken.textContent = tv;
+                var low = user.plan === 'pro' ? (user.balance || 0) <= 5 : (user.freeLeft != null ? user.freeLeft : user.freeLimit) <= 0;
+                sToken.style.background = low ? 'rgba(229,62,62,0.25)' : 'rgba(255,255,255,0.18)';
+                sToken.style.borderColor = low ? 'rgba(229,62,62,0.5)' : 'rgba(255,255,255,0.35)';
+            }
+        }
+
+        window.addEventListener('scroll', function () { document.getElementById('navbar').classList.toggle('shadow-md', window.scrollY > 60); });
+
+        function openLoginModal(e) { if (e) e.preventDefault(); document.getElementById('loginModal').classList.add('show'); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.remove('show'); }
+
+        function doLogout() {
+            fetch('/auth/logout', { method: 'POST' }).then(() => { currentUser = null; updateUserUI({ loggedIn: false }); showToast('Berhasil keluar.', 'success'); });
+        }
+
+        function toggleDrawer() {
+            var d = document.getElementById('mobileDrawer'), ov = document.getElementById('sidebarOverlay'), h = document.getElementById('navHamburger');
+            var open = d.classList.contains('open');
+            d.classList.toggle('open'); if (ov) ov.classList.toggle('open'); h.classList.toggle('open');
+            document.body.style.overflow = !open ? 'hidden' : '';
+        }
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 768) {
+                var d = document.getElementById('mobileDrawer'), ov = document.getElementById('sidebarOverlay'), h = document.getElementById('navHamburger');
+                if (d) d.classList.remove('open'); if (ov) ov.classList.remove('open'); if (h) h.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
+
+        function switchTab(btn, id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active'); document.getElementById('tab-' + id).classList.add('active');
+        }
+
+        function handleSkillInput(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                var v = document.getElementById('skillInput').value.trim().replace(/,$/, '');
+                if (v && skills.indexOf(v) === -1) { skills.push(v); renderSkills(); }
+                document.getElementById('skillInput').value = '';
+            }
+        }
+        function removeSkill(i) { skills.splice(i, 1); renderSkills(); }
+        function renderSkills() {
+            document.getElementById('skillsTags').innerHTML = skills.map((s, i) =>
+                `<div class="skill-tag inline-flex items-center gap-1.5 bg-[#0070ba]/8 border border-[#0070ba]/20 text-[#0070ba] text-[11px] font-medium px-2.5 py-1 rounded">
+                ${escHtml(s)}<button onclick="removeSkill(${i})" class="bg-red-50 hover:bg-red-500 border border-red-200 hover:border-red-500 text-red-400 hover:text-white cursor-pointer text-xs leading-none rounded-full w-4 h-4 flex items-center justify-center transition-all duration-150">×</button>
+            </div>`
+            ).join('');
+        }
+
+        function addExperience() {
+            var id = Date.now(); experiences.push({ id: id });
+            var div = document.createElement('div'); div.id = 'exp-' + id;
+            div.className = 'bg-white border border-border p-5 mb-4';
+            div.innerHTML = `<div class="flex justify-between items-center mb-3.5"><span class="text-[10px] tracking-widest uppercase text-[#0070ba] font-semibold">Pengalaman</span><button onclick="removeExp(${id})" class="bg-red-50 hover:bg-red-500 border border-red-200 hover:border-red-500 text-red-400 hover:text-white w-7 h-7 rounded-full flex items-center justify-center cursor-pointer text-sm font-bold transition-all duration-150">×</button></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-3">
+          <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Jabatan *</label><input type="text" id="exp_title_${id}" placeholder="Senior Developer" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>
+          <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Perusahaan *</label><input type="text" id="exp_company_${id}" placeholder="PT Teknologi Maju" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-3">
+          <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Mulai</label><input type="text" id="exp_start_${id}" placeholder="Jan 2022" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>
+          <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Selesai</label><input type="text" id="exp_end_${id}" placeholder="Sekarang" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>
+        </div>
+        <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Deskripsi Tugas</label><textarea id="exp_desc_${id}" placeholder="Jelaskan tanggung jawab..." class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all resize-y min-h-[80px] leading-relaxed"></textarea></div>`;
+            document.getElementById('exp-list').appendChild(div);
+        }
+        function removeExp(id) { experiences = experiences.filter(e => e.id !== id); var el = document.getElementById('exp-' + id); if (el) el.remove(); }
+
+        function addEducation() {
+            var id = Date.now(); educations.push({ id: id });
+            var div = document.createElement('div'); div.id = 'edu-' + id;
+            div.className = 'bg-white border border-border p-5 mb-4';
+            div.innerHTML = `<div class="flex justify-between items-center mb-3.5"><span class="text-[10px] tracking-widest uppercase text-[#0070ba] font-semibold">Pendidikan</span><button onclick="removeEdu(${id})" class="bg-red-50 hover:bg-red-500 border border-red-200 hover:border-red-500 text-red-400 hover:text-white w-7 h-7 rounded-full flex items-center justify-center cursor-pointer text-sm font-bold transition-all duration-150">×</button></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-3">
+          <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Gelar / Jurusan *</label><input type="text" id="edu_degree_${id}" placeholder="S1 Teknik Informatika" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>
+          <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Institusi *</label><input type="text" id="edu_school_${id}" placeholder="Universitas Indonesia" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-3">
+          <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Tahun Masuk</label><input type="text" id="edu_start_${id}" placeholder="2018" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>
+          <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">Tahun Lulus</label><input type="text" id="edu_end_${id}" placeholder="2022" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>
+        </div>
+        <div><label class="block text-[10px] tracking-widest uppercase text-muted mb-2 font-medium">IPK / Catatan</label><input type="text" id="edu_gpa_${id}" placeholder="IPK 3.85 / Cum Laude" class="w-full bg-white border border-border text-gray-700 px-4 py-3 text-sm outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 transition-all"></div>`;
+            document.getElementById('edu-list').appendChild(div);
+        }
+        function removeEdu(id) { educations = educations.filter(e => e.id !== id); var el = document.getElementById('edu-' + id); if (el) el.remove(); }
+
+        function getVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+        function collectData() {
+            var expData = [], eduData = [];
+            experiences.forEach(e => { var t = getVal('exp_title_' + e.id), c = getVal('exp_company_' + e.id); if (t && c) expData.push({ title: t, company: c, start: getVal('exp_start_' + e.id), end: getVal('exp_end_' + e.id), desc: getVal('exp_desc_' + e.id) }); });
+            educations.forEach(e => { var d = getVal('edu_degree_' + e.id), s = getVal('edu_school_' + e.id); if (d && s) eduData.push({ degree: d, school: s, start: getVal('edu_start_' + e.id), end: getVal('edu_end_' + e.id), gpa: getVal('edu_gpa_' + e.id) }); });
+            return { name: getVal('f_name'), profession: getVal('f_profession'), email: getVal('f_email'), phone: getVal('f_phone'), location: getVal('f_location'), linkedin: getVal('f_linkedin'), summary: getVal('f_summary'), lang: getVal('f_lang'), style: getVal('f_style'), skills, certs: getVal('f_certs'), awards: getVal('f_awards'), experiences: expData, educations: eduData };
+        }
+
+        function buildPrompt(data) {
+            var lang = data.lang === 'en' ? 'English' : 'Bahasa Indonesia';
+            var expStr = data.experiences.map(e => `- ${e.title} di ${e.company} (${e.start}-${e.end}): ${e.desc}`).join('\n') || 'Tidak ada';
+            var eduStr = data.educations.map(e => `- ${e.degree}, ${e.school} (${e.start}-${e.end}) ${e.gpa}`).join('\n') || 'Tidak ada';
+            return `Kamu adalah career coach dan CV writer profesional. Buat CV profesional, ATS-friendly.\n\nBahasa: ${lang}\nGaya: ${data.style}\nOutput: JSON saja\n\nNama: ${data.name || ''}\nProfesi: ${data.profession || ''}\nEmail: ${data.email || ''}\nTelepon: ${data.phone || ''}\nLokasi: ${data.location || ''}\nLinkedIn: ${data.linkedin || ''}\nRingkasan: ${data.summary || 'auto'}\n\nPengalaman:\n${expStr}\n\nPendidikan:\n${eduStr}\nKeahlian: ${data.skills.join(', ') || '-'}\nSertifikasi: ${data.certs || '-'}\nPenghargaan: ${data.awards || '-'}\n\nJSON output:\n{"name":"...","profession":"...","email":"...","phone":"...","location":"...","linkedin":"...","summary":"...","experiences":[{"title":"...","company":"...","period":"...","description":"..."}],"educations":[{"degree":"...","school":"...","period":"...","note":"..."}],"skills":["..."],"certifications":"...","awards":"..."}`;
+        }
+
+        function generateCV() {
+            if (!currentUser || !currentUser.loggedIn) { openLoginModal(); return; }
+            var data = collectData();
+            if (!data.name || !data.profession || !data.email) { showToast('Lengkapi nama, profesi, dan email terlebih dahulu', 'error'); return; }
+            var btn = document.getElementById('generateBtn'), sp = document.getElementById('spinner');
+            var overlay = document.getElementById('generateOverlay');
+            btn.classList.add('loading'); btn.disabled = true; sp.style.display = 'block';
+            if (overlay) overlay.classList.add('show');
+            fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: buildPrompt(data) }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 2048 } }) })
+                .then(r => r.json().then(b => { if (!r.ok) { var err = new Error(b.error || 'error'); err.code = b.error; err.status = r.status; throw err; } return b; }))
+                .then(body => {
+                    var t = (body.response?.candidates?.[0]?.content?.parts?.[0]?.text) || '';
+                    var m = t.match(/\{[\s\S]*\}/); if (!m) throw new Error('parse_failed');
+                    renderCVDocument(JSON.parse(m[0])); showToast('CV kamu berhasil dibuat! ✨', 'success'); loadUser();
+                })
+                .catch(err => {
+                    var msg = '';
+                    if (err.code === 'login_required') { openLoginModal(); return; }
+                    else if (err.code === 'free_limit') { msg = 'Batas generate harian tercapai. Upgrade ke Pro via Mayar.id!'; var u = document.getElementById('upgradeBtn'); if (u) u.style.display = ''; }
+                    else if (err.code === 'no_credit') msg = 'Kredit Pro kamu habis.';
+                    else if (err.code === 'api_limit') msg = 'Batas harian tercapai. Coba lagi besok.';
+                    else if (!err.status) msg = 'Tidak dapat terhubung ke server.';
+                    else if (err.message === 'parse_failed') msg = 'Gagal memproses respons. Coba generate ulang.';
+                    else msg = 'Terjadi kesalahan. Silakan coba lagi.';
+                    showToast(msg, 'error');
+                })
+                .finally(() => {
+                    btn.classList.remove('loading'); btn.disabled = false; sp.style.display = 'none';
+                    var ov = document.getElementById('generateOverlay'); if (ov) ov.classList.remove('show');
+                });
+        }
+
+        function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+        function renderCVDocument(cv) {
+            var expHtml = '', eduHtml = '', skillsHtml = '', contacts = '';
+            (cv.experiences || []).forEach(e => { expHtml += `<div class="cv-experience-item"><div class="cv-job-title">${escHtml(e.title || '')}</div><div class="cv-company">${escHtml(e.company || '')}</div><div class="cv-date">${escHtml(e.period || '')}</div><div class="cv-desc">${escHtml(e.description || '').replace(/\n/g, '<br>')}</div></div>`; });
+            (cv.educations || []).forEach(e => { eduHtml += `<div class="cv-education-item"><div><div class="cv-degree">${escHtml(e.degree || '')}</div><div class="cv-school">${escHtml(e.school || '')}${e.note ? ' · ' + escHtml(e.note) : ''}</div></div><div class="cv-edu-date">${escHtml(e.period || '')}</div></div>`; });
+            (cv.skills || []).forEach(s => { skillsHtml += `<div class="cv-skill-chip">${escHtml(s)}</div>`; });
+            if (cv.email) contacts += `<div class="cv-contact-item">✉ ${escHtml(cv.email)}</div>`;
+            if (cv.phone) contacts += `<div class="cv-contact-item">📞 ${escHtml(cv.phone)}</div>`;
+            if (cv.location) contacts += `<div class="cv-contact-item">📍 ${escHtml(cv.location)}</div>`;
+            if (cv.linkedin) contacts += `<div class="cv-contact-item">🔗 ${escHtml(cv.linkedin)}</div>`;
+            var html = `<div class="cv-document" id="cv-doc-print"><div class="cv-header-section"><div class="cv-name">${escHtml(cv.name || '')}</div><div class="cv-profession">${escHtml(cv.profession || '')}</div><div class="cv-contact-row">${contacts}</div></div>`;
+            if (cv.summary) html += `<div class="cv-section"><div class="cv-section-title">Profil</div><div class="cv-summary-text">${escHtml(cv.summary)}</div></div>`;
+            if (expHtml) html += `<div class="cv-section"><div class="cv-section-title">Pengalaman Kerja</div>${expHtml}</div>`;
+            if (eduHtml) html += `<div class="cv-section"><div class="cv-section-title">Pendidikan</div>${eduHtml}</div>`;
+            if (skillsHtml) html += `<div class="cv-section"><div class="cv-section-title">Keahlian</div><div class="cv-skills-grid">${skillsHtml}</div></div>`;
+            if (cv.certifications) html += `<div class="cv-section"><div class="cv-section-title">Sertifikasi</div><div class="cv-summary-text">${escHtml(cv.certifications)}</div></div>`;
+            if (cv.awards) html += `<div class="cv-section"><div class="cv-section-title">Penghargaan</div><div class="cv-summary-text">${escHtml(cv.awards)}</div></div>`;
+            html += '</div>';
+            var r = document.getElementById('cv-rendered');
+            r.innerHTML = html; document.getElementById('cvEmpty').style.display = 'none'; r.style.display = 'block';
+            document.getElementById('copyBtn').style.display = 'flex';
+            document.getElementById('printBtn').style.display = 'flex';
+        }
+
+        function copyCV() {
+            var t = document.getElementById('cv-rendered').innerText;
+            if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => showToast('CV berhasil disalin!', 'success')).catch(() => showToast('Gagal menyalin.', 'error'));
+        }
+
+        function printCV() {
+            var el = document.getElementById('cv-doc-print');
+            if (!el) { showToast('Generate CV terlebih dahulu', 'error'); return; }
+            var btn = document.getElementById('printBtn');
+            if (btn) { btn.textContent = 'Membuka PDF...'; btn.disabled = true; setTimeout(function () { btn.textContent = 'Cetak PDF'; btn.disabled = false; }, 3000); }
+            var css = [
+                '@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");',
+                '*{margin:0;padding:0;box-sizing:border-box}', 'html,body{background:#fff;font-family:Poppins,sans-serif;color:#1a1a18}',
+                '#cv-doc-print{padding:40px;max-width:794px;margin:0 auto;background:#fafaf7}',
+                '.cv-header-section{border-bottom:3px solid #1a1a18;padding-bottom:24px;margin-bottom:28px}',
+                '.cv-name{font-size:34px;font-weight:900;line-height:1.1;color:#0a0a08;letter-spacing:-1px}',
+                '.cv-profession{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#0070ba;margin:8px 0;font-weight:600}',
+                '.cv-contact-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}',
+                '.cv-contact-item{font-size:12px;color:#555;display:flex;align-items:center;gap:5px}',
+                '.cv-section{margin-bottom:24px}',
+                '.cv-section-title{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#0070ba;font-weight:700;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #d0daea}',
+                '.cv-summary-text{font-size:13px;line-height:1.75;color:#333}',
+                '.cv-experience-item{margin-bottom:16px;padding-left:12px;border-left:2px solid #0085d4}',
+                '.cv-job-title{font-weight:700;font-size:14px;color:#0a0a08}',
+                '.cv-company{font-size:11px;color:#0070ba;letter-spacing:1px;margin:2px 0}',
+                '.cv-date{font-size:10px;color:#888;margin-bottom:5px}',
+                '.cv-desc{font-size:12px;line-height:1.7;color:#444}',
+                '.cv-skills-grid{display:flex;flex-wrap:wrap;gap:6px}',
+                '.cv-skill-chip{background:#e8f0fb;border:1px solid #c0d4f0;font-size:10px;color:#0070ba;padding:3px 10px;border-radius:3px}',
+                '.cv-education-item{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}',
+                '.cv-degree{font-weight:700;font-size:13px;color:#0a0a08}',
+                '.cv-school{font-size:12px;color:#555;margin-top:2px}',
+                '.cv-edu-date{font-size:11px;color:#888;white-space:nowrap;margin-left:12px}',
+                '@media print{ @page{margin:15mm} body{print-color-adjust:exact;-webkit-print-color-adjust:exact} #cv-doc-print{padding:0;max-width:100%} }'
+            ].join('\n');
+            var win = window.open('', '_blank', 'width=900,height=700');
+            if (!win) { showToast('Pop-up diblokir. Izinkan pop-up lalu coba lagi.', 'error'); return; }
+            win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CV</title><style>' + css + '</style></head><body>' + el.outerHTML + '</body></html>');
+            win.document.close(); win.focus();
+            win.onload = function () { setTimeout(function () { win.print(); }, 800); };
+            setTimeout(function () { if (!win.closed) win.print(); }, 1200);
+            showToast('Pilih "Save as PDF" di dialog print', 'success');
+        }
+
+        function showToast(msg, type) {
+            type = type || 'success';
+            var t = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            document.getElementById('toastIcon').textContent = type === 'success' ? '✓' : '✗';
+            t.className = 'toast fixed bottom-8 right-8 bg-white border text-gray-700 px-6 py-3.5 z-[999] flex items-center gap-2.5 text-[12px] tracking-wide shadow-xl rounded-sm show ' + (type === 'success' ? 'border-l-4 border-l-blue' : 'border-l-4 border-l-red-500');
+            setTimeout(() => { t.classList.remove('show'); }, 3500);
+        }
+
+        // Scroll reveal
+        (function () {
+            document.querySelectorAll('.reveal').forEach(el => {
+                new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: 0.12 }).observe(el);
+            });
+        })();
+
+        // Counter animation
+        (function () {
+            var triggered = false, row = document.querySelector('.stat-num');
+            if (!row) return;
+            new IntersectionObserver(entries => {
+                if (entries[0].isIntersecting && !triggered) {
+                    triggered = true;
+                    [['10K+', '10', 'K+'], ['98%', '98', '%'], ['3s', '3', 's']].forEach(([, t, suffix], i) => {
+                        var els = document.querySelectorAll('.stat-num'); if (!els[i]) return;
+                        var el = els[i], start = Date.now(), dur = 1800, tgt = parseFloat(t);
+                        (function tick() { var p = Math.min((Date.now() - start) / dur, 1), ease = 1 - Math.pow(1 - p, 3); el.textContent = Math.floor(ease * tgt) + suffix; if (p < 1) requestAnimationFrame(tick); })();
+                    });
+                }
+            }, { threshold: 0.5 }).observe(row);
+        })();
+
+        // Ripple
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('a.bg-yellow,button.bg-yellow,button#generateBtn');
+            if (!btn) return;
+            var rip = document.createElement('span'), rect = btn.getBoundingClientRect(), size = Math.max(rect.width, rect.height) * 2;
+            rip.style.cssText = `position:absolute;border-radius:50%;background:rgba(255,255,255,0.35);width:${size}px;height:${size}px;left:${e.clientX - rect.left - size / 2}px;top:${e.clientY - rect.top - size / 2}px;pointer-events:none;transform:scale(0);animation:ripple 0.55s ease-out forwards`;
+            if (getComputedStyle(btn).position === 'static') btn.style.position = 'relative';
+            btn.style.overflow = 'hidden'; btn.appendChild(rip); setTimeout(() => rip.remove(), 600);
+        });
+        var rs = document.createElement('style'); rs.textContent = '@keyframes ripple{to{transform:scale(1);opacity:0}}'; document.head.appendChild(rs);
+    </script>
+</body>
+
+</html>
