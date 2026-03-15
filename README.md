@@ -55,7 +55,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 ### 4. Run Project Locally
 
 ```bash
-npm run dev
+npm start
 ```
 
 Aplikasi akan berjalan di:
