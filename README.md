@@ -113,23 +113,29 @@ vercel
 
 ```
 cvira/
-├── src/              # Frontend static files
-│   ├── index.html
-│   ├── global.css
-│   └── main.js
-├── api/                 # Serverless functions
-│   ├── generate.js      # CV generation endpoint
-│   ├── config.js        # App config endpoint
-│   ├── status.js        # Status endpoint
+│
+├── src/                        # Frontend static files
+│   ├── index.html              # Single page application
+│   ├── global.css              # Global styles & animations
+│   └── main.js                 # Client-side logic & CV generator
+│
+├── api/                        # Serverless functions (Vercel)
+│   ├── generate.js             # CV generation via Gemini AI
+│   ├── config.js               # App config & payment link
+│   ├── status.js               # API health check
 │   └── auth/
-│       ├── google.js    # Google OAuth init
-│       ├── callback.js  # Google OAuth callback
-│       ├── logout.js    # Logout handler
-│       └── me.js        # Current user info
-├── lib/                 # Shared utilities
-├── .env.example
-├── vercel.json
-└── package.json
+│       ├── google.js           # Google OAuth — init login
+│       ├── callback.js         # Google OAuth — handle callback
+│       ├── logout.js           # Session logout
+│       └── me.js               # Get current user session
+│
+├── lib/                        # Shared utilities
+│   └── ...                     # Helper functions, DB, session, etc.
+│
+├── .env.example                # Environment variables template
+├── vercel.json                 # Vercel routing & build config
+├── package.json                # Dependencies & scripts
+└── README.md
 ```
 
 ---
