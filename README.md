@@ -1,6 +1,21 @@
+# CVira — Generative CV Generator
+
+CV profesional dalam detik, didukung oleh AI.
+
+---
+
 ## 🚀 Getting Started
 
 Ikuti langkah berikut untuk menjalankan project di lokal.
+
+### Prerequisites
+
+Pastikan kamu sudah menginstall:
+
+- [Node.js](https://nodejs.org/) v18 atau lebih baru
+- [Vercel CLI](https://vercel.com/docs/cli) (untuk menjalankan serverless functions di lokal)
+
+---
 
 ### 1. Clone Repository
 
@@ -23,9 +38,7 @@ Copy file `.env.example` lalu rename menjadi `.env`.
 cp .env.example .env
 ```
 
-Kemudian isi value sesuai konfigurasi API kamu.
-
-Contoh struktur environment:
+Kemudian isi value sesuai konfigurasi API kamu:
 
 ```env
 # GEMINI API
@@ -55,7 +68,7 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 ### 4. Run Project Locally
 
 ```bash
-npm start
+vercel dev
 ```
 
 Aplikasi akan berjalan di:
@@ -64,15 +77,17 @@ Aplikasi akan berjalan di:
 http://localhost:3000
 ```
 
+> **Catatan:** Gunakan `vercel dev` bukan membuka file HTML langsung, karena project ini menggunakan serverless functions yang hanya bisa berjalan melalui Vercel CLI.
+
 ---
 
 ## ☁️ Deployment
 
-Project ini **tidak menggunakan backend tradisional**, melainkan menggunakan **serverless functions di Vercel**.
+Project ini menggunakan **Serverless Functions di Vercel** — tidak ada backend tradisional.
 
 ### Deploy ke Vercel
 
-1. Install Vercel CLI (optional)
+1. Install Vercel CLI
 
 ```bash
 npm i -g vercel
@@ -90,17 +105,46 @@ vercel login
 vercel
 ```
 
-Pastikan **Environment Variables** sudah diset di dashboard Vercel sebelum deployment.
+> Pastikan **Environment Variables** sudah diset di [Vercel Dashboard](https://vercel.com/dashboard) sebelum deployment.
+
+---
+
+## 📁 Project Structure
+
+```
+cvira/
+├── src/              # Frontend static files
+│   ├── index.html
+│   ├── global.css
+│   └── main.js
+├── api/                 # Serverless functions
+│   ├── generate.js      # CV generation endpoint
+│   ├── config.js        # App config endpoint
+│   ├── status.js        # Status endpoint
+│   └── auth/
+│       ├── google.js    # Google OAuth init
+│       ├── callback.js  # Google OAuth callback
+│       ├── logout.js    # Logout handler
+│       └── me.js        # Current user info
+├── lib/                 # Shared utilities
+├── .env.example
+├── vercel.json
+└── package.json
+```
 
 ---
 
 ## ⚙️ Tech Stack
 
-* Frontend Web Application
-* Serverless Functions
-* AI Integration (LLM API)
-* Deployment: Vercel
+| Layer | Teknologi |
+|---|---|
+| Frontend | HTML, CSS, Vanilla JS |
+| Serverless | Node.js (Vercel Functions) |
+| AI | Google Gemini API |
+| Auth | Google OAuth 2.0 |
+| Payment | Mayar.id |
+| Deployment | Vercel |
 
 ---
 
-## Thank You 💖 
+## Thank You 💖
