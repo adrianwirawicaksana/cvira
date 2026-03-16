@@ -153,4 +153,22 @@ cvira/
 
 ---
 
+## 💳 Sponsorship & Payment Partner
+
+Project ini didukung oleh **[Mayar.id](https://mayar.id)** sebagai payment gateway resmi untuk sistem membership CVira.
+
+[![Mayar.id](https://img.shields.io/badge/Payment%20Partner-Mayar.id-ec4899?style=for-the-badge)](https://mayar.id)
+
+Mayar.id menyediakan solusi pembayaran digital yang mudah dan aman untuk bisnis Indonesia:
+
+- 🔒 **SSL Terenkripsi** — transaksi aman end-to-end
+- 📱 **QRIS** — scan & bayar dari semua e-wallet
+- 🏦 **Transfer Bank & Virtual Account** — semua bank utama
+- 💚 **GoPay · OVO · Dana · ShopeePay** — e-wallet populer
+- 💳 **Visa / Mastercard** — kartu kredit & debit internasional
+
+> Ingin menggunakan Mayar.id untuk project kamu? Kunjungi **[mayar.id](https://mayar.id)**
+
+---
+
 ## Thank You 💖
