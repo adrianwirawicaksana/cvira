@@ -11,14 +11,14 @@
             }
         },
         {
-            "src": "public/**",
+            "src": "src/**",
             "use": "@vercel/static"
         }
     ],
     "routes": [
         {
             "src": "/favicon.ico",
-            "dest": "/public/favicon.ico"
+            "dest": "/src/favicon.ico"
         },
         {
             "src": "/auth/google",
@@ -49,8 +49,16 @@
             "dest": "/api/status.js"
         },
         {
+            "src": "/main.js",
+            "dest": "/src/main.js"
+        },
+        {
+            "src": "/global.css",
+            "dest": "/src/global.css"
+        },
+        {
             "src": "/(.*)",
-            "dest": "/public/index.html"
+            "dest": "/src/index.html"
         }
     ]
 }
