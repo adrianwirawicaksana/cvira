@@ -1,8 +1,8 @@
 {
-  "name": "cvcraft-ai",
+  "name": "cvira-ai",
   "version": "2.0.0",
   "description": "AI CV Generator dengan Gemini API + Mayar Subscription",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
